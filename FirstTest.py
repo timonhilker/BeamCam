@@ -17,7 +17,7 @@ class CameraKey(Structure):
 	("mp_manufacturer_str",POINTER(c_char)),
 	("mp_product_str",POINTER(c_char)),
 	("m_busy",c_uint),
-	("mp_private",c_void_p)
+	("mp_private",POINTER(c_void_p))
 	]
 
 	def __init__(self):
@@ -44,13 +44,28 @@ class VRmagicUSBCam_API:
 		CamIndex = 0
 		CamIndex = c_uint(CamIndex)
 
-		s=CameraKey()
+		# s=(CameraKey())
+		# s=c_uint(s)
+
+
+		Key_p = POINTER(CameraKey)
+		self.dll.VRmUsbCamGetDeviceKeyListEntry.argtypes = [c_uint,POINTER(POINTER(CameraKey))]
+		
+		s = POINTER(CameraKey)()
+		
+
 
 		Key = self.dll.VRmUsbCamGetDeviceKeyListEntry(CamIndex,byref(s))
 
 		ID = c_uint(0)
 
 		ErrID = self.dll.VRmUsbCamGetProductId(s,byref(ID))
+
+		inf = POINTER(c_char)()
+
+		Errinf = self.dll.VRmUsbCamGetSerialString(s,byref(inf))
+
+
 
 
 
@@ -59,7 +74,9 @@ class VRmagicUSBCam_API:
 		print KeyList, 'KeyList'
 		print NumberCams, 'Number of cameras', No.value
 		print Key, 'Key', s
-		print ErrID, 'ID', ID
+		print ErrID, 'ID', ID.value
+		print inf[0:10], 'SerialString'
+		
 
 if __name__=="__main__":
 	check = VRmagicUSBCam_API()
