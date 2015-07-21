@@ -23,6 +23,33 @@ class CameraKey(Structure):
 	def __init__(self):
 		pass
 
+class ImageFormat(Structure):
+	'''Struct that holds the image format'''
+
+	_fields_ = [
+	('m_width',c_uint),
+	('m_height',c_uint),
+	('m_color_format',c_int),
+	('m_image_modifier',c_int)
+	]
+
+	def __init__(self):
+		pass
+
+class Image(Structure):
+	'''Struct that holds the image'''
+
+	_fields_ = [
+	('m_image_format',ImageFormat),
+	('mp_buffer',POINTER(c_char)),
+	('m_pitch',c_uint),
+	('m_time_stamp',c_double),
+	('mp_private',POINTER(c_void_p))
+	]
+
+	def __init__(self):
+		pass
+
 		
 
 class VRmagicUSBCam_API:
@@ -74,15 +101,15 @@ class VRmagicUSBCam_API:
 
 	def GetDeviceKeyListEntry(self):
 
-		CamIndex = 0
-		CamIndex = c_uint(CamIndex)
+		self.CamIndex = 0
+		self.CamIndex = c_uint(self.CamIndex)
 
 		Key_p = POINTER(CameraKey)
 		self.dll.VRmUsbCamGetDeviceKeyListEntry.argtypes = [c_uint,POINTER(POINTER(CameraKey))]
 		
 		self.key = POINTER(CameraKey)()
 		
-		Key = self.dll.VRmUsbCamGetDeviceKeyListEntry(CamIndex,byref(self.key))
+		Key = self.dll.VRmUsbCamGetDeviceKeyListEntry(self.CamIndex,byref(self.key))
 
 		if Key==0:
 			self.ShowErrorInformation()
@@ -117,8 +144,29 @@ class VRmagicUSBCam_API:
 			print 'Serial String: ', serial
 			print 'Busy: ', self.key.contents.m_busy
 
+	def TakePicture(self,keytest=0):
+		if keytest==0:
+			print 'No valid key available!'
+		elif self.key.contents.m_busy!=0:
+			print 'Camera is busy!'
+		else:
+			Error = self.dll.VRmUsbCamOpenDevice(self.key,byref(self.CamIndex))
+			if Error==0:
+				self.ShowErrorInformation()
+			else:
+				print 'Device opend successfully'
+
+				Error = self.dll.VRmUsbCamNewImage()
 
 
+
+		Error = self.dll.VRmUsbCamFreeDeviceKey(byref(self.key))
+		if Error==0:
+			self.ShowErrorInformation()
+
+		Error = self.dll.VRmUsbCamCloseDevice(self.CamIndex)
+		if Error==0:
+			self.ShowErrorInformation()
 
 
 		# print KeyList, 'KeyList'
@@ -134,3 +182,4 @@ if __name__=="__main__":
 	check.GetDeviceKeyListSize()
 	keycheck = check.GetDeviceKeyListEntry()
 	check.GetDeviceInformation(keycheck)
+	check.TakePicture(keycheck)
