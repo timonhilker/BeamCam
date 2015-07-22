@@ -104,7 +104,7 @@ class VRmagicUSBCam_API:
 		self.CamIndex = 0
 		self.CamIndex = c_uint(self.CamIndex)
 
-		Key_p = POINTER(CameraKey)
+		# Key_p = POINTER(CameraKey)
 		self.dll.VRmUsbCamGetDeviceKeyListEntry.argtypes = [c_uint,POINTER(POINTER(CameraKey))]
 		
 		self.key = POINTER(CameraKey)()
@@ -156,7 +156,56 @@ class VRmagicUSBCam_API:
 			else:
 				print 'Device opend successfully'
 
-				Error = self.dll.VRmUsbCamNewImage()
+				format = ImageFormat()
+				format.m_width = 754
+				format.m_height = 480
+				format.m_color_format = 4
+				format.m_image_modifier = 0
+
+				inf = POINTER(c_char)()
+
+				Error = self.dll.VRmUsbCamGetStringFromColorFormat(format.m_color_format,byref(inf))
+
+				color = []
+				i = 0
+				
+				while inf[i] != '\0':
+					color.append(inf[i])
+					i += 1
+				color = ''.join(color)
+				print 'Color format: ', color
+
+				# image_p = POINTER(Image)
+				self.dll.VRmUsbCamNewImage.argtypes = [POINTER(POINTER(Image)),ImageFormat]
+		
+				self.image_p = POINTER(Image)()
+
+				Error = self.dll.VRmUsbCamNewImage(byref(self.image_p),format)
+
+				if Error==0:
+					self.ShowErrorInformation()
+
+				
+
+
+				if Error==1:
+					print'Image taken!'
+					name_p = c_char_p('Test.png')
+					Error = self.dll.VRmUsbCamSavePNG(name_p,self.image_p,c_int(0))
+					if Error==0:
+						self.ShowErrorInformation()
+					if Error==1:
+						print'Image saved!'
+
+				Error = self.dll.VRmUsbCamFreeImage(byref(self.image_p))
+
+				if Error==0:
+					self.ShowErrorInformation()
+
+
+
+				
+
 
 
 
