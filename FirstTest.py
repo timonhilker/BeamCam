@@ -202,7 +202,7 @@ class VRmagicUSBCam_API:
 				if Error==1:
 					print'Image taken!'
 
-					ImageList = list(self.image_p.contents.mp_buffer[0:((format.m_width-1)*int(pixeldepth.value)+(format.m_height-1)*int(self.image_p.contents.m_pitch))])
+					ImageList = list(self.image_p.contents.mp_buffer[0:(format.m_height)*int(self.image_p.contents.m_pitch)])
 					# print ImageList[0:10]
 					# print len(ImageList)
 					ImageList = [ord(i) for i in ImageList]
@@ -293,41 +293,71 @@ class VRmagicUSBCam_API:
 
 				self.dll.VRmUsbCamLockNextImageEx.argtypes = [c_uint,c_uint,POINTER(POINTER(Image)),POINTER(c_uint)]
 		
-				self.image_p = POINTER(Image)()
+				source_image_p = POINTER(Image)()
 
 				framesdropped = c_uint(0)
 
-				Error = self.dll.VRmUsbCamStart(c_uint(0))
+				Error = self.dll.VRmUsbCamStart(c_uint(1))
 
-				Error = self.dll.VRmUsbCamLockNextImageEx(c_uint(0),c_uint(0),byref(self.image_p),byref(framesdropped))
+				Error = self.dll.VRmUsbCamLockNextImageEx2(c_uint(1),c_uint(0),byref(source_image_p),byref(framesdropped))
+				if Error==0:
+					self.ShowErrorInformation()
 
-				Error = self.dll.VRmUsbCamStop(c_uint(0))
+				self.image_p = POINTER(Image)()
+				buffer_ini = POINTER(c_ubyte)(c_ubyte(0))
+				buffer_ini_pitch = c_uint(format.m_width+2)
+
+				Error = self.dll.VRmUsbCamSetImage(byref(self.image_p),format,buffer_ini,buffer_ini_pitch)
+				if Error==0:
+					self.ShowErrorInformation()
+
+				Error = self.dll.VRmUsbCamConvertImage(source_image_p,self.image_p)
+				if Error==0:
+					self.ShowErrorInformation()
+
+				Error = self.dll.VRmUsbCamUnlockNextImage(c_uint(1),byref(source_image_p))
+				if Error==0:
+					self.ShowErrorInformation()
 
 
-				print 'Pitch: ', self.image_p.contents.m_pitch
+
+				Error = self.dll.VRmUsbCamStop(c_uint(1))
+				if Error==0:
+					self.ShowErrorInformation()
+
+
+				# print 'Pitch: ', self.image_p.contents.m_pitch
 
 				if Error==0:
 					self.ShowErrorInformation()
 
-				
+				# Error = 1
 
 
 				if Error==1:
 					print'Image taken!'
 
-					# ImageList = self.image_p.contents.mp_buffer[0:(format.m_width*int(pixeldepth.value)+format.m_height*int(self.image_p.contents.m_pitch))]
+					ImageList = list(self.image_p.contents.mp_buffer[0:(format.m_height)*int(self.image_p.contents.m_pitch)])
 					# print ImageList[0:10]
 					# print len(ImageList)
+					ImageList = [ord(i) for i in ImageList]
+					print len(ImageList)
 
-					self.ImageArray = np.zeros((format.m_height,format.m_width))
-					for j in range(5):#format.m_height):
-						for i in range(5):#format.m_width):
-							self.ImageArray[j,i] = ord(self.image_p.contents.mp_buffer[j*int(pixeldepth.value)+i*int(self.image_p.contents.m_pitch)])
+					self.ImageArray = np.array(ImageList)
+					self.ImageArray = np.reshape(self.ImageArray,(format.m_height,int(self.image_p.contents.m_pitch)))
+					self.ImageArray = self.ImageArray[:,:format.m_width]
+
+
+					# for j in range(format.m_height):
+					# 	for i in range(format.m_width):
+					# 		self.ImageArray[j,i] = ord(self.image_p.contents.mp_buffer[j*int(pixeldepth.value)+i*int(self.image_p.contents.m_pitch)])
 
 							# print ord(ImageList[i*int(pixeldepth.value)+j*int(self.image_p.contents.m_pitch)])
 
 					plt.figure()
 					plt.imshow(self.ImageArray, cmap = cm.Greys_r)
+
+
 
 
 
@@ -374,4 +404,5 @@ if __name__=="__main__":
 	keycheck = check.GetDeviceKeyListEntry()
 	check.GetDeviceInformation(keycheck)
 	check.TakePicture(keycheck)
+	# check.TakePictureGrabbing(keycheck)
 	plt.show()
