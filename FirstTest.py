@@ -146,6 +146,27 @@ class VRmagicUSBCam_API:
 			print 'Serial String: ', serial
 			print 'Busy: ', self.key.contents.m_busy
 
+
+	def GetExposureTime(self,device):
+
+		ExpoTime = c_float(0.0)
+		Error = self.dll.VRmUsbCamGetPropertyValueF(device, c_int(0x1001), byref(ExpoTime))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Exposure Time: ', ExpoTime.value, 'ms'
+
+	def SetExposureTime(self,device,exposuretime):
+
+		ExpoTime = c_float(exposuretime)
+		Error = self.dll.VRmUsbCamSetPropertyValueF(device, c_int(0x1001), byref(ExpoTime))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Exposure Time set to: ', ExpoTime.value, 'ms'
+
+
+
 	def TakePicture(self,keytest=0):
 		if keytest==0:
 			print 'No valid key available!'
@@ -157,6 +178,8 @@ class VRmagicUSBCam_API:
 				self.ShowErrorInformation()
 			else:
 				print 'Device opend successfully'
+
+				self.GetExposureTime(self.CamIndex)
 
 				format = ImageFormat()
 				format.m_width = 754
@@ -188,8 +211,11 @@ class VRmagicUSBCam_API:
 		
 				self.image_p = POINTER(Image)()
 
+				Error = self.dll.VRmUsbCamStart(self.CamIndex)
+
 				Error = self.dll.VRmUsbCamNewImage(byref(self.image_p),format)
 
+				Error = self.dll.VRmUsbCamStop(self.CamIndex)
 
 				print 'Pitch: ', self.image_p.contents.m_pitch
 
@@ -263,11 +289,11 @@ class VRmagicUSBCam_API:
 			if Error==0:
 				self.ShowErrorInformation()
 			else:
-				print 'Device opend successfully'
+				print 'Device opened successfully'
 
 				format = ImageFormat()
 				format.m_width = 754
-				format.m_height = 482
+				format.m_height = 480
 				format.m_color_format = 4
 				format.m_image_modifier = 0
 
@@ -287,41 +313,77 @@ class VRmagicUSBCam_API:
 				pixeldepth = c_uint(0)
 
 
+				self.GetExposureTime(self.CamIndex)
+				self.SetExposureTime(self.CamIndex,0.75)
+				self.GetExposureTime(self.CamIndex)
+
+
 				Error = self.dll.VRmUsbCamGetPixelDepthFromColorFormat(format.m_color_format,byref(pixeldepth))
 
 				print 'Pixel Depth: ', pixeldepth.value
 
+
+				inf = POINTER(c_char)()
+
+				Error = self.dll.VRmUsbCamGetSourceFormatDescription(self.CamIndex,c_uint(1),byref(inf))
+				if Error==0:
+					self.ShowErrorInformation()
+
+				sourceformat = []
+				i = 0
+				
+				while inf[i] != '\0':
+					sourceformat.append(inf[i])
+					i += 1
+				sourceformat = ''.join(sourceformat)
+				print 'Source format: ', sourceformat
+
 				self.dll.VRmUsbCamLockNextImageEx.argtypes = [c_uint,c_uint,POINTER(POINTER(Image)),POINTER(c_uint)]
-		
+				
 				source_image_p = POINTER(Image)()
 
 				framesdropped = c_uint(0)
 
-				Error = self.dll.VRmUsbCamStart(c_uint(1))
+				Error = self.dll.VRmUsbCamStart(self.CamIndex)
+				print 'Start Cam'
 
-				Error = self.dll.VRmUsbCamLockNextImageEx2(c_uint(1),c_uint(0),byref(source_image_p),byref(framesdropped))
+				Error = self.dll.VRmUsbCamLockNextImageEx(self.CamIndex,c_uint(1),byref(source_image_p),byref(framesdropped))
+				
+				print 'Lock Image'
+
 				if Error==0:
 					self.ShowErrorInformation()
 
-				self.image_p = POINTER(Image)()
-				buffer_ini = POINTER(c_ubyte)(c_ubyte(0))
-				buffer_ini_pitch = c_uint(format.m_width+2)
+				# self.image_p = POINTER(Image)()
+				# buffer_ini = POINTER(c_ubyte)(c_ubyte(0))
+				# buffer_ini_pitch = c_uint(format.m_width+2)
 
-				Error = self.dll.VRmUsbCamSetImage(byref(self.image_p),format,buffer_ini,buffer_ini_pitch)
+				# Error = self.dll.VRmUsbCamSetImage(byref(self.image_p),format,buffer_ini,buffer_ini_pitch)
+
+				# print 'Set Format'
+
 				if Error==0:
 					self.ShowErrorInformation()
 
-				Error = self.dll.VRmUsbCamConvertImage(source_image_p,self.image_p)
+				# Error = self.dll.VRmUsbCamConvertImage(source_image_p,self.image_p)
+
+				print 'Convert Image'
+
 				if Error==0:
 					self.ShowErrorInformation()
 
-				Error = self.dll.VRmUsbCamUnlockNextImage(c_uint(1),byref(source_image_p))
+				Error = self.dll.VRmUsbCamStop(self.CamIndex)
+
+				# Error = self.dll.VRmUsbCamUnlockNextImage(self.CamIndex,byref(source_image_p))
+
+				print 'Unlock Image'
+
 				if Error==0:
 					self.ShowErrorInformation()
 
 
 
-				Error = self.dll.VRmUsbCamStop(c_uint(1))
+				# Error = self.dll.VRmUsbCamStop(self.CamIndex)
 				if Error==0:
 					self.ShowErrorInformation()
 
@@ -337,16 +399,17 @@ class VRmagicUSBCam_API:
 				if Error==1:
 					print'Image taken!'
 
-					ImageList = list(self.image_p.contents.mp_buffer[0:(format.m_height)*int(self.image_p.contents.m_pitch)])
+					ImageList = list(source_image_p.contents.mp_buffer[0:(format.m_height)*int(source_image_p.contents.m_pitch)])
 					# print ImageList[0:10]
 					# print len(ImageList)
 					ImageList = [ord(i) for i in ImageList]
 					print len(ImageList)
 
 					self.ImageArray = np.array(ImageList)
-					self.ImageArray = np.reshape(self.ImageArray,(format.m_height,int(self.image_p.contents.m_pitch)))
+					self.ImageArray = np.reshape(self.ImageArray,(format.m_height,int(source_image_p.contents.m_pitch)))
 					self.ImageArray = self.ImageArray[:,:format.m_width]
 
+					# Error = self.dll.VRmUsbCamFreeImage(byref(self.image_p))
 
 					# for j in range(format.m_height):
 					# 	for i in range(format.m_width):
@@ -356,6 +419,7 @@ class VRmagicUSBCam_API:
 
 					plt.figure()
 					plt.imshow(self.ImageArray, cmap = cm.Greys_r)
+					plt.colorbar()
 
 
 
@@ -363,13 +427,19 @@ class VRmagicUSBCam_API:
 
 
 					name_p = c_char_p('Test.png')
-					Error = self.dll.VRmUsbCamSavePNG(name_p,self.image_p,c_int(0))
+					Error = self.dll.VRmUsbCamSavePNG(name_p,source_image_p,c_int(0))
 					if Error==0:
 						self.ShowErrorInformation()
 					if Error==1:
 						print'Image saved!'
 
-				Error = self.dll.VRmUsbCamFreeImage(byref(self.image_p))
+				Error = self.dll.VRmUsbCamUnlockNextImage(self.CamIndex,byref(source_image_p))
+
+				# Error = self.dll.VRmUsbCamFreeImage(byref(self.image_p))
+
+				# Error = self.dll.VRmUsbCamStop(self.CamIndex)
+
+				# Error = self.dll.VRmUsbCamFreeImage(byref(self.image_p))
 
 				if Error==0:
 					self.ShowErrorInformation()
@@ -403,6 +473,6 @@ if __name__=="__main__":
 	check.GetDeviceKeyListSize()
 	keycheck = check.GetDeviceKeyListEntry()
 	check.GetDeviceInformation(keycheck)
-	check.TakePicture(keycheck)
-	# check.TakePictureGrabbing(keycheck)
+	# check.TakePicture(keycheck)
+	check.TakePictureGrabbing(keycheck)
 	plt.show()
