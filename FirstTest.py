@@ -6,9 +6,13 @@ Created on Thu Jul 16 10:18:13 2015
 """
 
 from ctypes import *
+from pyqtgraph.Qt import QtCore, QtGui
 import numpy as np
+import pyqtgraph as pg
+import pyqtgraph.ptime as ptime
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+import sys
 
 
 class CameraKey(Structure):
@@ -168,6 +172,11 @@ class VRmagicUSBCam_API:
 
 
 	def TakePicture(self,keytest=0):
+
+		'''
+		Not updated; does not work!!
+		'''
+
 		if keytest==0:
 			print 'No valid key available!'
 		elif self.key.contents.m_busy!=0:
@@ -279,6 +288,68 @@ class VRmagicUSBCam_API:
 			self.ShowErrorInformation()
 
 
+
+	def UseSourceFormat(self):
+		Error = self.dll.VRmUsbCamGetSourceFormatEx(self.CamIndex,c_uint(1),byref(self.format))
+		if Error==0:
+			self.ShowErrorInformation()
+
+
+	def GetSourceFormatInformation(self):
+		inf = POINTER(c_char)()
+
+		Error = self.dll.VRmUsbCamGetSourceFormatDescription(self.CamIndex,c_uint(1),byref(inf))
+		if Error==0:
+			self.ShowErrorInformation()
+
+		sourceformat = []
+		i = 0
+				
+		while inf[i] != '\0':
+			sourceformat.append(inf[i])
+			i += 1
+		sourceformat = ''.join(sourceformat)
+		print 'Source format: ', sourceformat
+
+
+
+
+
+	def GrabNextImage(self):
+
+		self.dll.VRmUsbCamLockNextImageEx2.argtypes = [c_uint,c_uint,POINTER(POINTER(Image)),POINTER(c_uint),c_int]
+				
+		source_image_p = POINTER(Image)()
+
+		framesdropped = c_uint(0)
+
+		timeout = 5000
+
+		Error = self.dll.VRmUsbCamLockNextImageEx2(self.CamIndex,c_uint(1),byref(source_image_p),byref(framesdropped),c_int(timeout))
+				
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print'Image taken!'
+
+			ImageList = list(source_image_p.contents.mp_buffer[0:(self.format.m_height)*int(source_image_p.contents.m_pitch)])
+			ImageList = [ord(i) for i in ImageList]
+			print len(ImageList)
+
+			self.ImageArray = np.array(ImageList)
+			self.ImageArray = np.reshape(self.ImageArray,(self.format.m_height,int(source_image_p.contents.m_pitch)))
+			self.ImageArray = self.ImageArray[:,:self.format.m_width]
+
+
+		Error = self.dll.VRmUsbCamUnlockNextImage(self.CamIndex,byref(source_image_p))
+		print 'Unlock Image'
+		if Error==0:
+			self.ShowErrorInformation()
+
+
+
+
+
 	def TakePictureGrabbing(self,keytest=0):
 		if keytest==0:
 			print 'No valid key available!'
@@ -291,15 +362,15 @@ class VRmagicUSBCam_API:
 			else:
 				print 'Device opened successfully'
 
-				format = ImageFormat()
-				format.m_width = 754
-				format.m_height = 480
-				format.m_color_format = 4
-				format.m_image_modifier = 0
+				self.format = ImageFormat()
+				self.format.m_width = 754
+				self.format.m_height = 480
+				self.format.m_color_format = 4
+				self.format.m_image_modifier = 0
 
 				inf = POINTER(c_char)()
 
-				Error = self.dll.VRmUsbCamGetStringFromColorFormat(format.m_color_format,byref(inf))
+				Error = self.dll.VRmUsbCamGetStringFromColorFormat(self.format.m_color_format,byref(inf))
 
 				color = []
 				i = 0
@@ -318,135 +389,159 @@ class VRmagicUSBCam_API:
 				self.GetExposureTime(self.CamIndex)
 
 
-				Error = self.dll.VRmUsbCamGetPixelDepthFromColorFormat(format.m_color_format,byref(pixeldepth))
+				Error = self.dll.VRmUsbCamGetPixelDepthFromColorFormat(self.format.m_color_format,byref(pixeldepth))
 
 				print 'Pixel Depth: ', pixeldepth.value
 
+				self.GetSourceFormatInformation()
+				self.UseSourceFormat()
 
-				inf = POINTER(c_char)()
-
-				Error = self.dll.VRmUsbCamGetSourceFormatDescription(self.CamIndex,c_uint(1),byref(inf))
-				if Error==0:
-					self.ShowErrorInformation()
-
-				sourceformat = []
-				i = 0
-				
-				while inf[i] != '\0':
-					sourceformat.append(inf[i])
-					i += 1
-				sourceformat = ''.join(sourceformat)
-				print 'Source format: ', sourceformat
-
-				self.dll.VRmUsbCamLockNextImageEx.argtypes = [c_uint,c_uint,POINTER(POINTER(Image)),POINTER(c_uint)]
-				
-				source_image_p = POINTER(Image)()
-
-				framesdropped = c_uint(0)
 
 				Error = self.dll.VRmUsbCamStart(self.CamIndex)
 				print 'Start Cam'
 
-				Error = self.dll.VRmUsbCamLockNextImageEx(self.CamIndex,c_uint(1),byref(source_image_p),byref(framesdropped))
-				
-				print 'Lock Image'
+				self.GrabNextImage()
 
-				if Error==0:
-					self.ShowErrorInformation()
-
-				# self.image_p = POINTER(Image)()
-				# buffer_ini = POINTER(c_ubyte)(c_ubyte(0))
-				# buffer_ini_pitch = c_uint(format.m_width+2)
-
-				# Error = self.dll.VRmUsbCamSetImage(byref(self.image_p),format,buffer_ini,buffer_ini_pitch)
-
-				# print 'Set Format'
-
-				if Error==0:
-					self.ShowErrorInformation()
-
-				# Error = self.dll.VRmUsbCamConvertImage(source_image_p,self.image_p)
-
-				print 'Convert Image'
-
-				if Error==0:
-					self.ShowErrorInformation()
 
 				Error = self.dll.VRmUsbCamStop(self.CamIndex)
-
-				# Error = self.dll.VRmUsbCamUnlockNextImage(self.CamIndex,byref(source_image_p))
-
-				print 'Unlock Image'
-
 				if Error==0:
 					self.ShowErrorInformation()
 
 
+				plt.figure()
+				plt.imshow(self.ImageArray, cmap = cm.Greys_r)
+				plt.colorbar()
 
-				# Error = self.dll.VRmUsbCamStop(self.CamIndex)
-				if Error==0:
-					self.ShowErrorInformation()
-
-
-				# print 'Pitch: ', self.image_p.contents.m_pitch
-
-				if Error==0:
-					self.ShowErrorInformation()
-
-				# Error = 1
-
-
-				if Error==1:
-					print'Image taken!'
-
-					ImageList = list(source_image_p.contents.mp_buffer[0:(format.m_height)*int(source_image_p.contents.m_pitch)])
-					# print ImageList[0:10]
-					# print len(ImageList)
-					ImageList = [ord(i) for i in ImageList]
-					print len(ImageList)
-
-					self.ImageArray = np.array(ImageList)
-					self.ImageArray = np.reshape(self.ImageArray,(format.m_height,int(source_image_p.contents.m_pitch)))
-					self.ImageArray = self.ImageArray[:,:format.m_width]
-
-					# Error = self.dll.VRmUsbCamFreeImage(byref(self.image_p))
-
-					# for j in range(format.m_height):
-					# 	for i in range(format.m_width):
-					# 		self.ImageArray[j,i] = ord(self.image_p.contents.mp_buffer[j*int(pixeldepth.value)+i*int(self.image_p.contents.m_pitch)])
-
-							# print ord(ImageList[i*int(pixeldepth.value)+j*int(self.image_p.contents.m_pitch)])
-
-					plt.figure()
-					plt.imshow(self.ImageArray, cmap = cm.Greys_r)
-					plt.colorbar()
-
-
-
-
-
-
-					name_p = c_char_p('Test.png')
-					Error = self.dll.VRmUsbCamSavePNG(name_p,source_image_p,c_int(0))
-					if Error==0:
-						self.ShowErrorInformation()
-					if Error==1:
-						print'Image saved!'
-
-				Error = self.dll.VRmUsbCamUnlockNextImage(self.CamIndex,byref(source_image_p))
-
-				# Error = self.dll.VRmUsbCamFreeImage(byref(self.image_p))
-
-				# Error = self.dll.VRmUsbCamStop(self.CamIndex)
-
-				# Error = self.dll.VRmUsbCamFreeImage(byref(self.image_p))
-
-				if Error==0:
-					self.ShowErrorInformation()
-
-
+					# name_p = c_char_p('Test.png')
+					# Error = self.dll.VRmUsbCamSavePNG(name_p,source_image_p,c_int(0))
+					# if Error==0:
+					# 	self.ShowErrorInformation()
+					# if Error==1:
+					# 	print'Image saved!'
 
 				
+				if Error==0:
+					self.ShowErrorInformation()
+
+		Error = self.dll.VRmUsbCamFreeDeviceKey(byref(self.key))
+		if Error==0:
+			self.ShowErrorInformation()
+
+		Error = self.dll.VRmUsbCamCloseDevice(self.CamIndex)
+		if Error==0:
+			self.ShowErrorInformation()
+
+
+
+	def RealTimeView(self,keytest=0):
+
+		if keytest==0:
+			print 'No valid key available!'
+		elif self.key.contents.m_busy!=0:
+			print 'Camera is busy!'
+		else:
+			Error = self.dll.VRmUsbCamOpenDevice(self.key,byref(self.CamIndex))
+			if Error==0:
+				self.ShowErrorInformation()
+			else:
+				print 'Device opened successfully'
+
+				self.GetExposureTime(self.CamIndex)
+				self.SetExposureTime(self.CamIndex,0.75)
+				self.GetExposureTime(self.CamIndex)
+
+				self.format = ImageFormat()
+				self.GetSourceFormatInformation()
+				self.UseSourceFormat()
+
+
+				Error = self.dll.VRmUsbCamStart(self.CamIndex)
+				print 'Started Cam'
+
+
+				app = QtGui.QApplication([])
+
+				# ## Create window with GraphicsView widget
+				# win = pg.GraphicsLayoutWidget()
+				# win.show()  ## show widget alone in its own window
+				# win.setWindowTitle('pyqtgraph example: ImageItem')
+				# view = win.addViewBox()
+
+				# ## lock the aspect ratio so pixels are always square
+				# view.setAspectLocked(True)
+
+				# ## Create image item
+				# img = pg.ImageItem(border='w')
+				# view.addItem(img)
+
+				# ## Set initial view bounds
+				# view.setRange(QtCore.QRectF(0, 0, 754, 480))
+
+
+
+				# self.GrabNextImage()
+				
+				# self.ImageArray = self.ImageArray.flatten
+				# i = 0
+
+				# updateTime = ptime.time()
+				# fps = 0
+
+				# def updateData():
+				# 	global img, i, updateTime, fps
+
+				# 	## Display the data
+				# 	img.setImage(self.ImageArray[i])
+				# 	i = (i+1) % self.ImageArray.shape[0]
+
+				# 	QtCore.QTimer.singleShot(1, updateData)
+				# 	now = ptime.time()
+				# 	fps2 = 1.0 / (now-updateTime)
+				# 	updateTime = now
+				# 	fps = fps * 0.9 + fps2 * 0.1
+    
+				# 	#print "%0.1f fps" % fps
+    
+
+				# updateData()
+
+    # 			if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
+				# 	# QtGui.QApplication.instance().exec_()
+				# 	pg.exit()
+				# 	Error = self.dll.VRmUsbCamStop(self.CamIndex)
+				# 	if Error==0:
+				# 		self.ShowErrorInformation()
+
+
+				def updateview():
+					# global img
+					self.GrabNextImage()
+					self.img.setImage(self.ImageArray.T)
+
+				win = QtGui.QWidget()
+
+				# Image widget
+				imagewidget = pg.GraphicsLayoutWidget()
+				view = imagewidget.addViewBox()
+				view.setAspectLocked(True)
+				self.img = pg.ImageItem(border='w')
+				view.addItem(self.img)
+				view.setRange(QtCore.QRectF(0, 0, 480, 754))
+
+				layout = QtGui.QGridLayout()
+				win.setLayout(layout)
+				layout.addWidget(imagewidget, 1, 2, 3, 1)
+				win.show()
+
+				viewtimer = QtCore.QTimer()
+				viewtimer.timeout.connect(updateview)
+				viewtimer.start(0)
+
+				app.exec_()
+				viewtimer.stop()
+				Error = self.dll.VRmUsbCamStop(self.CamIndex)
+				if Error==0:
+					self.ShowErrorInformation()
 
 
 
@@ -460,11 +555,10 @@ class VRmagicUSBCam_API:
 			self.ShowErrorInformation()
 
 
-		# print KeyList, 'KeyList'
-		# print NumberCams, 'Number of cameras', No.value
-		# print Key, 'Key', s
-		# print ErrID, 'ID', ID.value
-		# print inf[0:10], 'SerialString'
+
+
+
+
 		
 
 if __name__=="__main__":
@@ -473,6 +567,6 @@ if __name__=="__main__":
 	check.GetDeviceKeyListSize()
 	keycheck = check.GetDeviceKeyListEntry()
 	check.GetDeviceInformation(keycheck)
-	# check.TakePicture(keycheck)
-	check.TakePictureGrabbing(keycheck)
+	# check.TakePictureGrabbing(keycheck)
+	check.RealTimeView(keycheck)
 	plt.show()
