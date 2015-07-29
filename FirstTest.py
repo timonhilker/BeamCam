@@ -14,6 +14,23 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import sys
 
+ExposureTimeAddress = c_int(0x1001)
+ExposureAutoAddress = c_int(0x1003)
+GainValueAddress = c_int(0x1023)
+GainAutoAddress = c_int(0x1024)
+FilterGammaAddress = c_int(0x3100)
+FilterLuminanceAddress = c_int(0x3101)
+FilterContrastAddress = c_int(0x3102)
+FilterBlacklevelAddress = c_int(0x3103)
+SensorRoiAddress = c_int(0x3010)
+PixelClockAddress = c_int(0x2100)
+HBlankDurationAddress = c_int(0x1010)
+VBlankDurationAddress = c_int(0x1011)
+VRefAddress = c_int(0x1070)
+BlacklevelAutoAddress = c_int(0x1071)
+BlacklevelAdjustAddress = c_int(0x1072)
+FlipHorizontalAddress = c_int(0x1046)
+FlipVerticalAddress = c_int(0x1047)
 
 class CameraKey(Structure):
 	'''Struct that holds the key of a camera'''
@@ -51,6 +68,19 @@ class Image(Structure):
 	('m_pitch',c_uint),
 	('m_time_stamp',c_double),
 	('mp_private',POINTER(c_void_p))
+	]
+
+	def __init__(self):
+		pass
+
+class Rect(Structure):
+	'''Struct that holds the data for a roi of the image'''
+
+	_fields_ = [
+	('m_left',c_int),
+	('m_top',c_int),
+	('m_width',c_int),
+	('m_height',c_int)
 	]
 
 	def __init__(self):
@@ -151,10 +181,19 @@ class VRmagicUSBCam_API:
 			print 'Busy: ', self.key.contents.m_busy
 
 
+	'''
+	---------------------------------------------------------------------------
+	---------------------------------------------------------------------------
+	Functions to handle important properties
+	---------------------------------------------------------------------------
+	---------------------------------------------------------------------------
+	'''
+
+
 	def GetExposureTime(self,device):
 
 		ExpoTime = c_float(0.0)
-		Error = self.dll.VRmUsbCamGetPropertyValueF(device, c_int(0x1001), byref(ExpoTime))
+		Error = self.dll.VRmUsbCamGetPropertyValueF(device, ExposureTimeAddress, byref(ExpoTime))
 		if Error==0:
 			self.ShowErrorInformation()
 		if Error==1:
@@ -163,11 +202,345 @@ class VRmagicUSBCam_API:
 	def SetExposureTime(self,device,exposuretime):
 
 		ExpoTime = c_float(exposuretime)
-		Error = self.dll.VRmUsbCamSetPropertyValueF(device, c_int(0x1001), byref(ExpoTime))
+		Error = self.dll.VRmUsbCamSetPropertyValueF(device, ExposureTimeAddress, byref(ExpoTime))
 		if Error==0:
 			self.ShowErrorInformation()
 		if Error==1:
 			print 'Exposure Time set to: ', ExpoTime.value, 'ms'
+
+
+
+	def GetExposureAuto(self,device):
+
+		ExpoAuto = c_bool(False)
+		Error = self.dll.VRmUsbCamGetPropertyValueB(device, ExposureAutoAddress, byref(ExpoAuto))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Exposure Auto: ', ExpoAuto.value
+
+	def SetExposureAuto(self,device,exposureauto=False):
+
+		ExpoAuto = c_bool(exposureauto)
+		Error = self.dll.VRmUsbCamSetPropertyValueB(device, ExposureAutoAddress, byref(ExpoAuto))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Exposure Auto set to: ', ExpoAuto.value
+
+
+
+	def GetGainValue(self,device):
+
+		GainValue = c_int(0)
+		Error = self.dll.VRmUsbCamGetPropertyValueI(device, GainValueAddress, byref(GainValue))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Gain Value: ', GainValue.value
+
+	def SetGainValue(self,device,gainvalue=0):
+
+		GainValue = c_int(gainvalue)
+		Error = self.dll.VRmUsbCamSetPropertyValueI(device, GainValueAddress, byref(GainValue))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Gain Value set to: ', GainValue.value
+
+
+
+	def GetGainAuto(self,device):
+
+		GainAuto = c_bool(0)
+		Error = self.dll.VRmUsbCamGetPropertyValueB(device, GainAutoAddress, byref(GainAuto))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Gain Auto: ', GainAuto.value
+
+	def SetGainAuto(self,device,gainauto=False):
+
+		GainAuto = c_bool(gainauto)
+		Error = self.dll.VRmUsbCamSetPropertyValueB(device, GainAutoAddress, byref(GainAuto))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Gain Auto set to: ', GainAuto.value
+
+
+
+	def GetFilterGamma(self,device):
+
+		FilterGamma = c_float(0.)
+		Error = self.dll.VRmUsbCamGetPropertyValueF(device, FilterGammaAddress, byref(FilterGamma))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Filter Gamma: ', FilterGamma.value
+
+	def SetFilterGamma(self,device,filtergamma=1.0):
+
+		FilterGamma = c_float(filtergamma)
+		Error = self.dll.VRmUsbCamSetPropertyValueF(device, FilterGammaAddress, byref(FilterGamma))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Filter Gamma set to: ', FilterGamma.value
+
+
+
+	def GetFilterContrast(self,device):
+
+		FilterContrast = c_float(0.)
+		Error = self.dll.VRmUsbCamGetPropertyValueF(device, FilterContrastAddress, byref(FilterContrast))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Filter Contrast: ', FilterContrast.value
+
+	def SetFilterContrast(self,device,filtercontrast=1.0):
+
+		FilterContrast = c_float(filtercontrast)
+		Error = self.dll.VRmUsbCamSetPropertyValueF(device, FilterContrastAddress, byref(FilterContrast))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Filter Contrast set to: ', FilterContrast.value
+
+
+
+	def GetFilterLuminance(self,device):
+
+		FilterLuminance = c_int(0)
+		Error = self.dll.VRmUsbCamGetPropertyValueI(device, FilterLuminanceAddress, byref(FilterLuminance))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Filter Luminance: ', FilterLuminance.value
+
+	def SetFilterLuminance(self,device,filterluminance=0):
+
+		FilterLuminance = c_int(filterluminance)
+		Error = self.dll.VRmUsbCamSetPropertyValueI(device, FilterLuminanceAddress, byref(FilterLuminance))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Filter Luminance set to: ', FilterLuminance.value
+
+
+
+	def GetFilterBlacklevel(self,device):
+
+		FilterBlacklevel = c_int(0)
+		Error = self.dll.VRmUsbCamGetPropertyValueI(device, FilterBlacklevelAddress, byref(FilterBlacklevel))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Filter Blacklevel: ', FilterBlacklevel.value
+
+	def SetFilterBlacklevel(self,device,filterblacklevel=0):
+
+		FilterBlacklevel = c_int(filterblacklevel)
+		Error = self.dll.VRmUsbCamSetPropertyValueI(device, FilterBlacklevelAddress, byref(FilterBlacklevel))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Filter Blacklevel set to: ', FilterBlacklevel.value
+
+
+
+	def GetSensorRoi(self,device):
+
+		SensorRoi = Rect()
+		Error = self.dll.VRmUsbCamGetPropertyValueRectI(device, SensorRoiAddress, byref(SensorRoi))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Sensor Roi: ', SensorRoi.m_left, ':', SensorRoi.m_width, 'X', SensorRoi.m_top, ':', SensorRoi.m_height
+
+	def SetSensorRoi(self,device,sensorroi=(0,0,754,480)):
+		'''"sensorroi" format: (left,top,width,height)'''
+
+		SensorRoi = Rect()
+		SensorRoi.m_left = sensorroi[0]
+		SensorRoi.m_top = sensorroi[1]
+		SensorRoi.m_width = sensorroi[2]
+		SensorRoi.m_height = sensorroi[3]
+		Error = self.dll.VRmUsbCamSetPropertyValueRectI(device, SensorRoiAddress, byref(SensorRoi))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Sensor Roi set to: ', SensorRoi.m_left, ':', SensorRoi.m_width, 'X', SensorRoi.m_top, ':', SensorRoi.m_height
+
+
+
+	def GetPixelClock(self,device):
+
+		PixelClock = c_float(0.)
+		Error = self.dll.VRmUsbCamGetPropertyValueF(device, PixelClockAddress, byref(PixelClock))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Pixel Clock: ', PixelClock.value
+
+	def SetPixelClock(self,device,pixelclock=13.0):
+
+		PixelClock = c_float(pixelclock)
+		Error = self.dll.VRmUsbCamSetPropertyValueF(device, PixelClockAddress, byref(PixelClock))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Pixel Clock set to: ', PixelClock.value
+
+
+
+	def GetHBlankDuration(self,device):
+
+		HBlankDuration = c_int(0)
+		Error = self.dll.VRmUsbCamGetPropertyValueI(device, HBlankDurationAddress, byref(HBlankDuration))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'HBlank Duration: ', HBlankDuration.value
+
+	def SetHBlankDuration(self,device,hblankduration=61):
+
+		HBlankDuration = c_int(hblankduration)
+		Error = self.dll.VRmUsbCamSetPropertyValueI(device, HBlankDurationAddress, byref(HBlankDuration))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'HBlank Duration set to: ', HBlankDuration.value
+
+
+
+	def GetVBlankDuration(self,device):
+
+		VBlankDuration = c_int(0)
+		Error = self.dll.VRmUsbCamGetPropertyValueI(device, VBlankDurationAddress, byref(VBlankDuration))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'VBlank Duration: ', VBlankDuration.value
+
+	def SetVBlankDuration(self,device,vblankduration=5):
+
+		VBlankDuration = c_int(vblankduration)
+		Error = self.dll.VRmUsbCamSetPropertyValueI(device, VBlankDurationAddress, byref(VBlankDuration))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'VBlank Duration set to: ', VBlankDuration.value
+
+
+
+	def GetVRef(self,device):
+
+		VRef = c_int(0)
+		Error = self.dll.VRmUsbCamGetPropertyValueI(device, VRefAddress, byref(VRef))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'VRef: ', VRef.value
+
+	def SetVRef(self,device,vref=0):
+
+		VRef = c_int(vref)
+		Error = self.dll.VRmUsbCamSetPropertyValueI(device, VRefAddress, byref(VRef))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'VRef set to: ', VRef.value
+
+
+
+	def GetBlacklevelAuto(self,device):
+
+		BlacklevelAuto = c_bool(0)
+		Error = self.dll.VRmUsbCamGetPropertyValueB(device, BlacklevelAutoAddress, byref(BlacklevelAuto))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Blacklevel Auto: ', BlacklevelAuto.value
+
+	def SetBlacklevelAuto(self,device,blacklevelauto=False):
+
+		BlacklevelAuto = c_bool(blacklevelauto)
+		Error = self.dll.VRmUsbCamSetPropertyValueB(device, BlacklevelAutoAddress, byref(BlacklevelAuto))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Blacklevel Auto set to: ', BlacklevelAuto.value
+
+
+
+	def GetBlacklevelAdjust(self,device):
+
+		BlacklevelAdjust = c_int(0)
+		Error = self.dll.VRmUsbCamGetPropertyValueI(device, BlacklevelAdjustAddress, byref(BlacklevelAdjust))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Blacklevel Adjust: ', BlacklevelAdjust.value
+
+	def SetBlacklevelAdjust(self,device,blackleveladjust=0):
+
+		BlacklevelAdjust = c_int(blackleveladjust)
+		Error = self.dll.VRmUsbCamSetPropertyValueI(device, BlacklevelAdjustAddress, byref(BlacklevelAdjust))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Blacklevel Adjust set to: ', BlacklevelAdjust.value
+
+
+
+	def GetFlipHorizontal(self,device):
+
+		FlipHorizontal = c_bool(0)
+		Error = self.dll.VRmUsbCamGetPropertyValueB(device, FlipHorizontalAddress, byref(FlipHorizontal))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Flip Horizontal: ', FlipHorizontal.value
+
+	def SetFlipHorizontal(self,device,fliphorizontal=False):
+
+		FlipHorizontal = c_bool(fliphorizontal)
+		Error = self.dll.VRmUsbCamSetPropertyValueB(device, FlipHorizontalAddress, byref(FlipHorizontal))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Flip Horizontal set to: ', FlipHorizontal.value
+
+
+
+	def GetFlipVertical(self,device):
+
+		FlipVertical = c_bool(0)
+		Error = self.dll.VRmUsbCamGetPropertyValueB(device, FlipVerticalAddress, byref(FlipVertical))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Flip Vertical: ', FlipVertical.value
+
+	def SetFlipVertical(self,device,flipvertical=False):
+
+		FlipVertical = c_bool(flipvertical)
+		Error = self.dll.VRmUsbCamSetPropertyValueB(device, FlipVerticalAddress, byref(FlipVertical))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Flip Vertical set to: ', FlipVertical.value
+
+
+	'''
+	---------------------------------------------------------------------------
+	---------------------------------------------------------------------------
+	Functions to handle images 
+	---------------------------------------------------------------------------
+	---------------------------------------------------------------------------
+	'''
 
 
 
@@ -330,11 +703,11 @@ class VRmagicUSBCam_API:
 		if Error==0:
 			self.ShowErrorInformation()
 		if Error==1:
-			print'Image taken!'
+			# print'Image taken!'
 
 			ImageList = list(source_image_p.contents.mp_buffer[0:(self.format.m_height)*int(source_image_p.contents.m_pitch)])
 			ImageList = [ord(i) for i in ImageList]
-			print len(ImageList)
+			# print len(ImageList)
 
 			self.ImageArray = np.array(ImageList)
 			self.ImageArray = np.reshape(self.ImageArray,(self.format.m_height,int(source_image_p.contents.m_pitch)))
@@ -342,7 +715,7 @@ class VRmagicUSBCam_API:
 
 
 		Error = self.dll.VRmUsbCamUnlockNextImage(self.CamIndex,byref(source_image_p))
-		print 'Unlock Image'
+		# print 'Unlock Image'
 		if Error==0:
 			self.ShowErrorInformation()
 
@@ -387,6 +760,34 @@ class VRmagicUSBCam_API:
 				self.GetExposureTime(self.CamIndex)
 				self.SetExposureTime(self.CamIndex,0.75)
 				self.GetExposureTime(self.CamIndex)
+
+				self.GetExposureAuto(self.CamIndex)
+				self.SetExposureAuto(self.CamIndex,False)
+				self.GetExposureAuto(self.CamIndex)
+
+				self.GetGainValue(self.CamIndex)
+				self.SetGainValue(self.CamIndex,20)
+
+				self.GetGainAuto(self.CamIndex)
+				self.SetGainAuto(self.CamIndex,False)
+
+				self.GetFilterGamma(self.CamIndex)
+				self.SetFilterGamma(self.CamIndex)
+
+				self.GetFilterContrast(self.CamIndex)
+				self.SetFilterContrast(self.CamIndex)
+
+				self.GetFilterLuminance(self.CamIndex)
+				self.SetFilterLuminance(self.CamIndex)
+
+				self.GetFilterBlacklevel(self.CamIndex)
+				self.SetFilterBlacklevel(self.CamIndex)
+
+				self.GetSensorRoi(self.CamIndex)
+				self.SetSensorRoi(self.CamIndex)
+
+				self.GetFlipVertical(self.CamIndex)
+				self.SetFlipVertical(self.CamIndex)
 
 
 				Error = self.dll.VRmUsbCamGetPixelDepthFromColorFormat(self.format.m_color_format,byref(pixeldepth))
@@ -449,6 +850,10 @@ class VRmagicUSBCam_API:
 				self.GetExposureTime(self.CamIndex)
 				self.SetExposureTime(self.CamIndex,0.75)
 				self.GetExposureTime(self.CamIndex)
+
+				self.GetExposureAuto(self.CamIndex)
+				self.SetExposureAuto(self.CamIndex,False)
+				self.GetExposureAuto(self.CamIndex)
 
 				self.format = ImageFormat()
 				self.GetSourceFormatInformation()
@@ -524,12 +929,13 @@ class VRmagicUSBCam_API:
 				imagewidget = pg.GraphicsLayoutWidget()
 				view = imagewidget.addViewBox()
 				view.setAspectLocked(True)
-				self.img = pg.ImageItem(border='w')
+				self.img = pg.ImageItem(border='r')
 				view.addItem(self.img)
-				view.setRange(QtCore.QRectF(0, 0, 480, 754))
+				view.setRange(QtCore.QRectF(0, 0, 754, 480))
 
 				layout = QtGui.QGridLayout()
 				win.setLayout(layout)
+				win.setWindowTitle('VRmagic USB Cam Live View')
 				layout.addWidget(imagewidget, 1, 2, 3, 1)
 				win.show()
 
@@ -567,6 +973,6 @@ if __name__=="__main__":
 	check.GetDeviceKeyListSize()
 	keycheck = check.GetDeviceKeyListEntry()
 	check.GetDeviceInformation(keycheck)
-	# check.TakePictureGrabbing(keycheck)
-	check.RealTimeView(keycheck)
+	check.TakePictureGrabbing(keycheck)
+	# check.RealTimeView(keycheck)
 	plt.show()
