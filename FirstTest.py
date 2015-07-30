@@ -31,6 +31,7 @@ BlacklevelAutoAddress = c_int(0x1071)
 BlacklevelAdjustAddress = c_int(0x1072)
 FlipHorizontalAddress = c_int(0x1046)
 FlipVerticalAddress = c_int(0x1047)
+SourceFormatAddress = c_int(0x3000)
 
 class CameraKey(Structure):
 	'''Struct that holds the key of a camera'''
@@ -534,6 +535,33 @@ class VRmagicUSBCam_API:
 			print 'Flip Vertical set to: ', FlipVertical.value
 
 
+	'''------------------------------------------------------------------------'''
+
+	def GetSourceFormat(self,device):
+
+		'''Working, but not understood!'''
+
+		SourceFormat = c_int(0)
+		Error = self.dll.VRmUsbCamGetPropertyAttribsE(device, SourceFormatAddress, byref(SourceFormat))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Source Format: ', SourceFormat
+
+	def SetSourceFormat(self,device,sourceformat):
+
+		'''Working, but not understood!'''
+
+		SourceFormat = c_int(sourceformat)
+		Error = self.dll.VRmUsbCamSetPropertyAttribsE(device, SourceFormatAddress, byref(SourceFormat))
+		if Error==0:
+			self.ShowErrorInformation()
+		if Error==1:
+			print 'Source Format set to: ', SourceFormat
+
+	'''------------------------------------------------------------------------'''
+
+
 	'''
 	---------------------------------------------------------------------------
 	---------------------------------------------------------------------------
@@ -789,6 +817,8 @@ class VRmagicUSBCam_API:
 				self.GetFlipVertical(self.CamIndex)
 				self.SetFlipVertical(self.CamIndex)
 
+				# self.GetGainDoubling(self.CamIndex)
+
 
 				Error = self.dll.VRmUsbCamGetPixelDepthFromColorFormat(self.format.m_color_format,byref(pixeldepth))
 
@@ -918,26 +948,64 @@ class VRmagicUSBCam_API:
 				# 		self.ShowErrorInformation()
 
 
-				def updateview():
-					# global img
-					self.GrabNextImage()
-					self.img.setImage(self.ImageArray.T)
-
+				
 				win = QtGui.QWidget()
+
+
+				
+
 
 				# Image widget
 				imagewidget = pg.GraphicsLayoutWidget()
 				view = imagewidget.addViewBox()
 				view.setAspectLocked(True)
-				self.img = pg.ImageItem(border='r')
+				self.img = pg.ImageItem(border='k')
 				view.addItem(self.img)
 				view.setRange(QtCore.QRectF(0, 0, 754, 480))
+
+				# Custom ROI for selecting an image region
+				roi = pg.ROI([0, 200], [100, 200],pen=(0,9))
+				roi.addScaleHandle([0.5, 1], [0.5, 0.5])
+				roi.addScaleHandle([0, 0.5], [0.5, 0.5])
+				view.addItem(roi)
+				roi.setZValue(10)  # make sure ROI is drawn above
+
+				p3 = imagewidget.addPlot(colspan=1)
+				# p3.rotate(90)
+				p3.setMaximumWidth(200)
+
+				# Another plot area for displaying ROI data
+				imagewidget.nextRow()
+				p2 = imagewidget.addPlot(colspan=1)
+				p2.setMaximumHeight(200)
+				
+				# win.show()
+
 
 				layout = QtGui.QGridLayout()
 				win.setLayout(layout)
 				win.setWindowTitle('VRmagic USB Cam Live View')
 				layout.addWidget(imagewidget, 1, 2, 3, 1)
+				win.resize(1100, 870)
 				win.show()
+
+
+				
+				def updateview():
+					
+					self.GrabNextImage()
+					self.img.setImage(self.ImageArray.T)
+
+					updateRoi()
+
+				def updateRoi():
+
+					selected = roi.getArrayRegion(self.ImageArray.T, self.img)
+					p2.plot(selected.sum(axis=1), clear=True)
+					p3.plot(selected.sum(axis=0), clear=True).rotate(-90)
+
+
+				roi.sigRegionChanged.connect(updateRoi)
 
 				viewtimer = QtCore.QTimer()
 				viewtimer.timeout.connect(updateview)
@@ -973,6 +1041,6 @@ if __name__=="__main__":
 	check.GetDeviceKeyListSize()
 	keycheck = check.GetDeviceKeyListEntry()
 	check.GetDeviceInformation(keycheck)
-	check.TakePictureGrabbing(keycheck)
-	# check.RealTimeView(keycheck)
+	# check.TakePictureGrabbing(keycheck)
+	check.RealTimeView(keycheck)
 	plt.show()
