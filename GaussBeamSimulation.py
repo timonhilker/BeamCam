@@ -29,63 +29,105 @@ def gaussian2(xy, *p):
 
 class GaussBeamSimulation:
 
-	'''Class allows to simulate a gauss beam profile image captured by a camera'''
+    '''Class allows to simulate a gauss beam profile image captured by a camera'''
 
-	def __init__(self):
-		self.width = 754
-		self.height = 480
-
-
-	def NewImage(self):
-		self.image = np.zeros((self.height,self.width))
-
-	def AddWhiteNoise(self,expectation=50):
-		noise =  np.random.poisson(expectation,self.image.shape).astype(int)
-		self.image += noise
-
-	def AddRandomGauss(self,meanamplitude=200,meansigmax=40,meansigmay=40,meanposition=[376,239]):
-		amplitude = np.random.poisson(meanamplitude)
-		sigmax = np.random.poisson(meansigmax)
-		sigmay = np.random.poisson(meansigmay)
-		position = [0,0]
-		position[0] = np.random.poisson(meanposition[0])
-		position[1] = np.random.poisson(meanposition[1])
-		rotationangle = np.random.uniform(0,np.pi)
-		offset = 0.
-
-		ny,nx = self.image.shape
-
-		x = np.arange(self.width)
-		y = np.arange(self.height)
-
-		XY = np.meshgrid(x,y)
-
-		XYflat = np.array(XY).reshape(2,nx*ny).T
+    def __init__(self):
+        self.width = 754
+        self.height = 480
 
 
+    def NewImage(self):
+        self.image = np.zeros((self.height,self.width))
 
-		params = [amplitude,sigmax,position[0],position[1],sigmay,rotationangle,offset]
+    def AddWhiteNoise(self,expectation=150):
+        noise =  np.random.poisson(expectation,self.image.shape).astype(int)
+        self.image += noise
 
+    def AddRandomGauss(self,meanamplitude=200,meansigmax=30,meansigmay=30,meanposition=[376,239]):
+        amplitude = np.random.poisson(meanamplitude)
+        sigmax = np.random.poisson(meansigmax)
+        sigmay = np.random.poisson(meansigmay)
+        position = [0,0]
+        position[0] = np.random.poisson(meanposition[0])
+        position[1] = np.random.poisson(meanposition[1])
+        rotationangle = np.random.uniform(0,np.pi)
+        offset = 0.
 
-		gaussflat = gaussian2(XYflat,*params)
-		gauss = np.array(gaussflat).reshape(ny,nx)
+        ny,nx = self.image.shape
 
-		self.image +=gauss
+        x = np.arange(self.width)
+        y = np.arange(self.height)
+
+        XY = np.meshgrid(x,y)
+
+        XYflat = np.array(XY).reshape(2,nx*ny).T
 
 
 
-	def ShowImage(self):
-		plt.figure()
-		plt.imshow(self.image, cmap = cm.Greys_r)
-		plt.colorbar()
-		plt.show()
+        params = [amplitude,sigmax,position[0],position[1],sigmay,rotationangle,offset]
+
+
+        gaussflat = gaussian2(XYflat,*params)
+        gauss = np.array(gaussflat).reshape(ny,nx)
+
+        self.image +=gauss
+
+    def SimulateTotalImage(self,expectation=150,meanamplitude=200,meansigmax=30,meansigmay=30,meanposition=[376,239]):
+        self.image = np.zeros((self.height,self.width))
+        noise =  np.random.poisson(expectation,self.image.shape).astype(int)
+
+        amplitude = np.random.poisson(meanamplitude)
+        sigmax = np.random.poisson(meansigmax)
+        sigmay = np.random.poisson(meansigmay)
+        position = [0,0]
+        position[0] = np.random.poisson(meanposition[0])
+        position[1] = np.random.poisson(meanposition[1])
+        rotationangle = np.random.uniform(0,np.pi)
+        offset = 0.
+
+        ny,nx = self.image.shape
+
+        x = np.arange(self.width)
+        y = np.arange(self.height)
+
+        XY = np.meshgrid(x,y)
+
+        XYflat = np.array(XY).reshape(2,nx*ny).T
+
+
+
+        params = [amplitude,sigmax,position[0],position[1],sigmay,rotationangle,offset]
+
+
+        gaussflat = gaussian2(XYflat,*params)
+        gauss = np.array(gaussflat).reshape(ny,nx)
+
+        self.image = self.image + noise + gauss
+
+    def CreateImages(self,number=10):
+        for i in range(number):
+            self.SimulateTotalImage()
+            self.imageslist = []
+            self.imageslist.append(self.image)
+
+
+    def ChooseImage(self,number=10):
+        i = int(np.random.uniform(0,number-1))
+        self.image = self.imageslist[i]
+
+
+    def ShowImage(self):
+        plt.figure()
+        plt.imshow(self.image, cmap = cm.Greys_r)
+        plt.colorbar()
+        plt.show()
 
 
 if __name__=="__main__":
-	test = GaussBeamSimulation()
-	test.NewImage()
-	test.AddWhiteNoise()
-	test.AddRandomGauss()
-	test.ShowImage()
+    test = GaussBeamSimulation()
+    test.NewImage()
+    test.AddWhiteNoise()
+    test.AddRandomGauss()
+    test.ShowImage()
 
 
