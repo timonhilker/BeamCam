@@ -22,9 +22,25 @@ def gaussian(x, *p):
 
 def FitGaussian(data):
 
+    def split(arr, size):
+        arrs = []
+        while len(arr) > size:
+            pice = arr[:size]
+            arrs.append(pice)
+            arr   = arr[size:]
+        arrs.append(arr)
+        arrs = np.array(arrs)
+        arrs = np.mean(arrs, axis=1)
+        return arrs
+
+    # x = np.arange(data.size)
+    # data = split(data,10)
+
+    # print data
+
     def errf(params):
         x = np.arange(data.size)
-        return (data-gaussian(x,*params))
+        return (data-gaussian(x,*params)) #take only every 10th value
 
     x0ini = np.argmax(data)
     Aini = data[x0ini]

@@ -1054,11 +1054,17 @@ class VRmagicUSBCam_API:
         view.setRange(QtCore.QRectF(0, 0, 754, 480))
 
         # Custom ROI for selecting an image region
-        roi = pg.ROI([0, 200], [100, 200],pen=(0,9))
+        roi = pg.ROI([310, 210], [200, 200],pen=(0,9))
         roi.addScaleHandle([0.5, 1], [0.5, 0.5])
         roi.addScaleHandle([0, 0.5], [0.5, 0.5])
         view.addItem(roi)
         roi.setZValue(10)  # make sure ROI is drawn above
+
+
+        peak = pg.GraphItem()
+        symbol = ['x']
+        view.addItem(peak)
+        roi.setZValue(20)
 
         p3 = imagewidget.addPlot(colspan=1)
         # p3.rotate(90)
@@ -1068,6 +1074,13 @@ class VRmagicUSBCam_API:
         imagewidget.nextRow()
         p2 = imagewidget.addPlot(colspan=1)
         p2.setMaximumHeight(200)
+
+        #cross hair
+        vLine = pg.InfiniteLine(angle=90, movable=False)
+        hLine = pg.InfiniteLine(angle=0, movable=False)
+        view.addItem(vLine, ignoreBounds=True)
+        view.addItem(hLine, ignoreBounds=True)
+
                 
         # win.show()
 
@@ -1087,6 +1100,7 @@ class VRmagicUSBCam_API:
             # simulation.AddRandomGauss()
             # simulation.SimulateTotalImage()
             simulation.ChooseImage()
+
             self.ImageArray = simulation.image
             self.img.setImage(self.ImageArray.T)
 
@@ -1110,6 +1124,17 @@ class VRmagicUSBCam_API:
             xvert = np.arange(datavert.size)
             p3.plot(MatTools.gaussian(xvert,*FittedParamsVert), pen=(0,255,0)).rotate(-90)
 
+            hLine.setPos(FittedParamsVert[2]+roi.pos()[1])
+            vLine.setPos(FittedParamsHor[2]+roi.pos()[0])
+
+
+            
+            pos = np.array([[(FittedParamsHor[2]+roi.pos()[0]),(FittedParamsVert[2]+roi.pos()[1])]])
+            peak.setData(pos=pos,symbol=symbol,size=25, symbolPen='g', symbolBrush='g')
+            
+            # print roi.pos, 'ROI Position'
+
+
 
             # print 'ROI Sum: ', selected.sum(axis=1)
 
@@ -1118,7 +1143,7 @@ class VRmagicUSBCam_API:
 
         viewtimer = QtCore.QTimer()
         viewtimer.timeout.connect(updateview)
-        viewtimer.start(10)
+        viewtimer.start(0)
 
         app.exec_()
         viewtimer.stop()

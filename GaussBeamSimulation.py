@@ -104,15 +104,19 @@ class GaussBeamSimulation:
 
         self.image = self.image + noise + gauss
 
-    def CreateImages(self,number=10):
+    def CreateImages(self,number=20):
+        i = 0
+        self.imageslist = []
         for i in range(number):
             self.SimulateTotalImage()
-            self.imageslist = []
+            
             self.imageslist.append(self.image)
+            i += 1
 
 
-    def ChooseImage(self,number=10):
-        i = int(np.random.uniform(0,number-1))
+    def ChooseImage(self,number=20):
+        i = np.random.randint(0,number-1)
+        # print i, 'i'
         self.image = self.imageslist[i]
 
 
