@@ -20,18 +20,22 @@ class Ui_Form(object):
 
 
         self.x0Spin = QtGui.QDoubleSpinBox(Form)
-        self.x0Spin.setProperty("value", 200.)
+        self.x0Spin.setRange(0.,754.)
+        self.x0Spin.setProperty("value", 350)
         self.x0Spin.setObjectName(_fromUtf8("x0Spin"))
         self.gridLayout.addWidget(self.x0Spin, 1, 0, 1, 1)
+        
 
         self.x0label = QtGui.QLabel(Form)
         self.x0label.setObjectName(_fromUtf8("x0label"))
         self.gridLayout.addWidget(self.x0label, 1, 1, 1, 1)
 
         self.y0Spin = QtGui.QDoubleSpinBox(Form)
-        self.y0Spin.setProperty("value", 10)
+        self.y0Spin.setRange(0.,480.)
+        self.y0Spin.setProperty("value", 240)
         self.y0Spin.setObjectName(_fromUtf8("y0Spin"))
         self.gridLayout.addWidget(self.y0Spin, 2, 0, 1, 1)
+        
 
         self.y0label = QtGui.QLabel(Form)
         self.y0label.setObjectName(_fromUtf8("y0label"))
@@ -116,10 +120,12 @@ class Ui_Form(object):
         self.fitCheck = QtGui.QCheckBox(Form)
         self.fitCheck.setObjectName(_fromUtf8("fitCheck"))
         self.gridLayout.addWidget(self.fitCheck, 3, 5, 1, 1)
+        self.fitCheck.setChecked(True)
 
         self.trackCheck = QtGui.QCheckBox(Form)
         self.trackCheck.setObjectName(_fromUtf8("trackCheck"))
         self.gridLayout.addWidget(self.trackCheck, 4, 5, 1, 1)
+        self.trackCheck.setChecked(True)
 
 
 
@@ -152,8 +158,8 @@ class Ui_Form(object):
         self.vertRadio.setText(QtGui.QApplication.translate("Form", "vertical", None))
 
         self.optionslabel.setText(QtGui.QApplication.translate("Form", "Options", None, QtGui.QApplication.UnicodeUTF8))
-        self.fitCheck.setText(QtGui.QApplication.translate("Form", "Fit", None, QtGui.QApplication.UnicodeUTF8))
-        self.trackCheck.setText(QtGui.QApplication.translate("Form", "Track", None, QtGui.QApplication.UnicodeUTF8))
+        self.fitCheck.setText(QtGui.QApplication.translate("Form", "Show Fit", None, QtGui.QApplication.UnicodeUTF8))
+        self.trackCheck.setText(QtGui.QApplication.translate("Form", "Track Beam", None, QtGui.QApplication.UnicodeUTF8))
 
 
 from pyqtgraph import GraphicsLayoutWidget

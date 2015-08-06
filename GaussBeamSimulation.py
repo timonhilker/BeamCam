@@ -50,7 +50,8 @@ class GaussBeamSimulation:
         position = [0,0]
         position[0] = np.random.poisson(meanposition[0])
         position[1] = np.random.poisson(meanposition[1])
-        rotationangle = np.random.uniform(0,np.pi)
+        rotationangle = np.random.choice([0,np.pi/2.])
+        # rotationangle = 0
         offset = 0.
 
         ny,nx = self.image.shape
@@ -82,7 +83,8 @@ class GaussBeamSimulation:
         position = [0,0]
         position[0] = np.random.poisson(meanposition[0])
         position[1] = np.random.poisson(meanposition[1])
-        rotationangle = np.random.uniform(0,np.pi)
+        # rotationangle = np.random.uniform(0,np.pi)
+        rotationangle = np.random.choice([0,np.pi/2.])
         offset = 0.
 
         ny,nx = self.image.shape

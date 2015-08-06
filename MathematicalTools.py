@@ -20,6 +20,24 @@ def gaussian(x, *p):
     return g
 
 
+
+def rotmatrix(alpha):
+    return np.array([[np.cos(alpha), -np.sin(alpha)], [np.sin(alpha),  np.cos(alpha)]])
+
+
+def gaussian2(xy, *p):
+    '''returns gaussfunction for arbitrarily positioned and rotated 2d gauss'''
+    A, sx, x0, y0, sy,alpha,off = p
+    # M = np.array([[Bx,Bxy],[Bxy,By]])
+    R = rotmatrix(alpha)
+    M = np.dot(R,np.dot(np.array([[1./sx**2,0],[0,1./sy**2]]),R.T))
+    r = np.array([xy[:,0]-x0,xy[:,1]-y0])
+    g = A*np.exp(-0.5*np.sum(np.dot(M,r)*r,axis=0)) + off
+    # print g
+    return g
+
+
+
 def FitGaussian(data):
 
     def split(arr, size):

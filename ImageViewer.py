@@ -32,6 +32,32 @@ RealData = False
 
 
 
+def Create2DGaussian(RoiShape,*Parameters):
+
+
+
+
+    x = np.arange(RoiShape[1])
+    y = np.arange(RoiShape[0])
+
+    XY = np.meshgrid(x,y)
+
+    XYflat = np.array(XY).reshape(2,RoiShape[1]*RoiShape[0]).T
+
+    # params = [amplitude,sigmax,position[0],position[1],sigmay,rotationangle,offset]
+
+
+    gaussflat = gaussian2(XYflat,*Parameters)
+    gauss = np.array(gaussflat).reshape(ny,nx)
+
+    return gauss
+
+def ellipse(x,sigmax,sigmay):
+    return np.sqrt((sigmay**2)*(1-((x**2)/(sigmax**2))))
+
+
+
+
 
 def StartGUI():
 
@@ -59,11 +85,25 @@ def StartGUI():
     view.addItem(roi)
     roi.setZValue(10)  # make sure ROI is drawn above
 
-
-    peak = pg.GraphItem()
     symbol = ['x']
+    peak = pg.PlotDataItem(symbol = symbol,symbolPen='g',Pen=None,symbolBrush='g',symbolSize=25)
     view.addItem(peak)
-    roi.setZValue(20)
+    peak.setZValue(20)
+
+    symbol = ['x']
+    peakpos = pg.PlotDataItem(symbol = symbol,symbolPen='r',Pen=None,symbolBrush='r',symbolSize=25)
+    view.addItem(peakpos)
+    peakpos.setZValue(20)
+
+
+    contour = pg.PlotDataItem()
+    contour.setPen('g')
+    
+    
+    view.addItem(contour)
+    contour.setZValue(30)
+
+
 
     p3 = imagewidget.addPlot(colspan=1)
     # p3.rotate(90)
@@ -80,20 +120,6 @@ def StartGUI():
     view.addItem(vLine, ignoreBounds=True)
     view.addItem(hLine, ignoreBounds=True)
 
-    #curve for contourplot
-    # curve = pg.IsocurveItem(level=0)
-    # curve.setParentItem(img)  ## make sure isocurve is always correctly displayed over image
-    # curve.setZValue(10)
-
-                
-    # win.show()
-
-
-    # layout = QtGui.QGridLayout()
-    # win.setLayout(layout)
-    # win.setWindowTitle('VRmagic USB Cam Live View')
-    # layout.addWidget(imagewidget, 1, 2, 3, 1)
-    # win.resize(1100, 870)
     win.show()
 
 
@@ -118,19 +144,26 @@ def StartGUI():
         
         img.setImage(ImageArray.T)
 
+        # contour.clear()
         updateRoi()
 
     def updateRoi():
+
+        
 
         global ImageArray, img
 
         selected = roi.getArrayRegion(ImageArray.T, img)
         p2.plot(selected.sum(axis=1), clear=True)
 
+
+
         datahor = selected.sum(axis=1)
         FittedParamsHor = MatTools.FitGaussian(datahor)[0]
         xhor = np.arange(datahor.size)
-        p2.plot(MatTools.gaussian(xhor,*FittedParamsHor), pen=(0,255,0))
+
+        if ui.fitCheck.isChecked():
+            p2.plot(MatTools.gaussian(xhor,*FittedParamsHor), pen=(0,255,0))
 
 
         p3.plot(selected.sum(axis=0), clear=True).rotate(-90)
@@ -138,21 +171,64 @@ def StartGUI():
         datavert = selected.sum(axis=0)
         FittedParamsVert = MatTools.FitGaussian(datavert)[0]
         xvert = np.arange(datavert.size)
-        p3.plot(MatTools.gaussian(xvert,*FittedParamsVert), pen=(0,255,0)).rotate(-90)
 
-        hLine.setPos(FittedParamsVert[2]+roi.pos()[1])
-        vLine.setPos(FittedParamsHor[2]+roi.pos()[0])
+        if ui.fitCheck.isChecked():
+            p3.plot(MatTools.gaussian(xvert,*FittedParamsVert), pen=(0,255,0)).rotate(-90)
 
+
+        if ui.trackCheck.isChecked():
 
             
-        pos = np.array([[(FittedParamsHor[2]+roi.pos()[0]),(FittedParamsVert[2]+roi.pos()[1])]])
-        peak.setData(pos=pos,symbol=symbol,size=25, symbolPen='g', symbolBrush='g')
+            # view.addItem(peak)
+
             
-        # print roi.pos, 'ROI Position'
+
+            hLine.setPos(FittedParamsVert[2]+roi.pos()[1])
+            vLine.setPos(FittedParamsHor[2]+roi.pos()[0])
+
+            vLine.show()
+            hLine.show()
+
+            # view.addItem(hLine)
+            # view.addItem(vLine)
 
 
+                
+            pos = np.array([[(FittedParamsHor[2]+roi.pos()[0]),(FittedParamsVert[2]+roi.pos()[1])]])           
+            peak.setData(pos,clear=True)
 
-        # print 'ROI Sum: ', selected.sum(axis=1)
+
+            peakposition = np.array([[ui.x0Spin.value(),ui.y0Spin.value()]])
+            peakpos.setData(peakposition,clear=True)
+
+
+            x = np.linspace(-int(FittedParamsHor[1]),int(FittedParamsHor[1]),1000)
+            sigmax = int(FittedParamsHor[1])
+            sigmay = int(FittedParamsVert[1])
+            y = ellipse(x,sigmax,sigmay)
+
+            x = np.append(x,-x)
+            y = np.append(y,-y)
+            
+            x += FittedParamsHor[2]+roi.pos()[0]
+            y += FittedParamsVert[2]+roi.pos()[1]
+            # X,Y = np.meshgrid(x,y)
+            # contour.clear()
+            contour.setData(x,y,clear=True)
+
+        else:
+            # view.removeItem(hLine)
+            # view.removeItem(vLine)
+            vLine.hide()
+            hLine.hide()
+            contour.clear()
+            peak.clear()
+            
+
+            
+
+            
+        
 
 
     roi.sigRegionChanged.connect(updateRoi)
