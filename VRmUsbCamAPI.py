@@ -195,8 +195,9 @@ class VRmagicUSBCam_API:
         Error = self.dll.VRmUsbCamGetPropertyValueF(device, ExposureTimeAddress, byref(ExpoTime))
         if Error==0:
             self.ShowErrorInformation()
-        if Error==1:
-            print 'Exposure Time: ', ExpoTime.value, 'ms'
+        # if Error==1:
+        #     print 'Exposure Time: ', ExpoTime.value, 'ms'
+        return ExpoTime.value
 
     def SetExposureTime(self,device,exposuretime):
 
@@ -204,8 +205,8 @@ class VRmagicUSBCam_API:
         Error = self.dll.VRmUsbCamSetPropertyValueF(device, ExposureTimeAddress, byref(ExpoTime))
         if Error==0:
             self.ShowErrorInformation()
-        if Error==1:
-            print 'Exposure Time set to: ', ExpoTime.value, 'ms'
+        # if Error==1:
+        #     print 'Exposure Time set to: ', ExpoTime.value, 'ms'
 
 
 
@@ -235,8 +236,9 @@ class VRmagicUSBCam_API:
         Error = self.dll.VRmUsbCamGetPropertyValueI(device, GainValueAddress, byref(GainValue))
         if Error==0:
             self.ShowErrorInformation()
-        if Error==1:
-            print 'Gain Value: ', GainValue.value
+        # if Error==1:
+        #     print 'Gain Value: ', GainValue.value
+        return GainValue.value
 
     def SetGainValue(self,device,gainvalue=0):
 
@@ -244,8 +246,9 @@ class VRmagicUSBCam_API:
         Error = self.dll.VRmUsbCamSetPropertyValueI(device, GainValueAddress, byref(GainValue))
         if Error==0:
             self.ShowErrorInformation()
-        if Error==1:
-            print 'Gain Value set to: ', GainValue.value
+        # if Error==1:
+        #     print 'Gain Value set to: ', GainValue.value
+
 
 
 

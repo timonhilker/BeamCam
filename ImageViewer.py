@@ -59,7 +59,14 @@ def ellipse(x,sigmax,sigmay):
 
 
 
-def StartGUI():
+def StartGUI(camera='Simulation is used'):
+
+    def InitializeCam(camera,ui):
+        ExpoTime = camera.GetExposureTime(camera.CamIndex)
+        ui.exposureSpin.setProperty("value", ExpoTime)
+        GainValue = camera.GetGainValue(camera.CamIndex)
+        ui.gainSpin.setProperty("value", GainValue)
+
 
     global img
 
@@ -76,10 +83,10 @@ def StartGUI():
     view.setAspectLocked(True)
     img = pg.ImageItem(border='k')
     view.addItem(img)
-    view.setRange(QtCore.QRectF(0, 0, 754, 480))
+    view.setRange(QtCore.QRectF(0, 0, 754, 754))
 
     # Custom ROI for selecting an image region
-    roi = pg.ROI([310, 210], [200, 200],pen=(0,9))
+    roi = pg.ROI([310, 210], [200, 200],pen='b')
     roi.addScaleHandle([0.5, 1], [0.5, 0.5])
     roi.addScaleHandle([0, 0.5], [0.5, 0.5])
     view.addItem(roi)
@@ -98,10 +105,15 @@ def StartGUI():
 
     contour = pg.PlotDataItem()
     contour.setPen('g')
-    
-    
     view.addItem(contour)
     contour.setZValue(30)
+
+
+    refcontour = pg.PlotDataItem()
+    refcontour.setPen('r')
+    view.addItem(refcontour)
+    refcontour.setZValue(25)
+
 
 
 
@@ -120,6 +132,9 @@ def StartGUI():
     view.addItem(vLine, ignoreBounds=True)
     view.addItem(hLine, ignoreBounds=True)
 
+    if RealData:
+        InitializeCam(camera,ui)
+
     win.show()
 
 
@@ -133,12 +148,32 @@ def StartGUI():
         # simulation.AddRandomGauss()
         # simulation.SimulateTotalImage()
 
-        if RealData==False:
-            simulation.ChooseImage()
-            ImageArray = simulation.image
-        else:
-            camera.GrabNextImage()
-            ImageArray = camera.ImageArray
+        if ui.horRadio.isChecked():
+            view.setRange(QtCore.QRectF(0, 0, 754, 480))
+            ui.x0Spin.setRange(0.,754.)
+            ui.y0Spin.setRange(0.,480.)
+            if RealData==False:
+                simulation.ChooseImage()
+                ImageArray = simulation.image
+            else:
+                camera.GrabNextImage()
+                ImageArray = camera.ImageArray
+        elif ui.vertRadio.isChecked():
+            view.setRange(QtCore.QRectF(0, 0, 480, 754))
+            ui.x0Spin.setRange(0.,480.)
+            ui.y0Spin.setRange(0.,754.)
+            if RealData==False:
+                simulation.ChooseImage()
+                ImageArray = simulation.image.T
+            else:
+                camera.GrabNextImage()
+                ImageArray = camera.ImageArray.T
+
+        if RealData:
+            camera.SetExposureTime(camera.CamIndex,ui.exposureSpin.value())
+            camera.SetGainValue(camera.CamIndex,ui.gainSpin.value())
+
+
 
 
         
@@ -166,14 +201,14 @@ def StartGUI():
             p2.plot(MatTools.gaussian(xhor,*FittedParamsHor), pen=(0,255,0))
 
 
-        p3.plot(selected.sum(axis=0), clear=True).rotate(-90)
+        p3.plot(selected.sum(axis=0), clear=True).rotate(90)
 
         datavert = selected.sum(axis=0)
         FittedParamsVert = MatTools.FitGaussian(datavert)[0]
         xvert = np.arange(datavert.size)
 
         if ui.fitCheck.isChecked():
-            p3.plot(MatTools.gaussian(xvert,*FittedParamsVert), pen=(0,255,0)).rotate(-90)
+            p3.plot(MatTools.gaussian(xvert,*FittedParamsVert), pen=(0,255,0)).rotate(90)
 
 
         if ui.trackCheck.isChecked():
@@ -190,21 +225,17 @@ def StartGUI():
             hLine.show()
 
             # view.addItem(hLine)
-            # view.addItem(vLine)
-
-
-                
+            # view.addItem(vLine)    
             pos = np.array([[(FittedParamsHor[2]+roi.pos()[0]),(FittedParamsVert[2]+roi.pos()[1])]])           
             peak.setData(pos,clear=True)
 
 
-            peakposition = np.array([[ui.x0Spin.value(),ui.y0Spin.value()]])
-            peakpos.setData(peakposition,clear=True)
+            # peakposition = np.array([[ui.x0Spin.value(),ui.y0Spin.value()]])
+            # peakpos.setData(peakposition,clear=True)
 
-
-            x = np.linspace(-int(FittedParamsHor[1]),int(FittedParamsHor[1]),1000)
-            sigmax = int(FittedParamsHor[1])
-            sigmay = int(FittedParamsVert[1])
+            x = np.linspace(-(FittedParamsHor[1]),(FittedParamsHor[1]),1000)
+            sigmax = FittedParamsHor[1]
+            sigmay = FittedParamsVert[1]
             y = ellipse(x,sigmax,sigmay)
 
             x = np.append(x,-x)
@@ -223,12 +254,34 @@ def StartGUI():
             hLine.hide()
             contour.clear()
             peak.clear()
-            
 
-            
 
+        if ui.refCheck.isChecked():
+
+            peakposition = np.array([[ui.x0Spin.value(),ui.y0Spin.value()]])
+            peakpos.setData(peakposition,clear=True)
+
+
+            sigmax = ui.sigmaxSpin.value()
+            sigmay = ui.sigmaySpin.value()
+            x = np.linspace(-(sigmax),(sigmax),1000)
+            y = ellipse(x,sigmax,sigmay)
+
+            x = np.append(x,-x)
+            y = np.append(y,-y)
             
-        
+            x += ui.x0Spin.value()
+            y += ui.y0Spin.value()
+            # X,Y = np.meshgrid(x,y)
+            # contour.clear()
+            refcontour.setData(x,y,clear=True)
+
+
+
+
+        else:
+            peakpos.clear()
+            refcontour.clear()
 
 
     roi.sigRegionChanged.connect(updateRoi)
@@ -250,7 +303,7 @@ else:
     camera = CamAPI.VRmagicUSBCam_API()
     camera.InitializeCam()
     camera.StartCam()
-    StartGUI()
+    StartGUI(camera)
     camera.StopCam()
 
 

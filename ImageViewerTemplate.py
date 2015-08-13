@@ -14,7 +14,7 @@ class Ui_Form(object):
     
     def setupUi(self, Form):
         Form.setObjectName(_fromUtf8("Form"))
-        Form.resize(1200, 800)
+        Form.resize(1200, 1000)
         self.gridLayout = QtGui.QGridLayout(Form)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
 
@@ -42,7 +42,8 @@ class Ui_Form(object):
         self.gridLayout.addWidget(self.y0label, 2, 1, 1, 1)
 
         self.sigmaxSpin = QtGui.QDoubleSpinBox(Form)
-        self.sigmaxSpin.setProperty("value", 200.)
+        self.sigmaxSpin.setRange(0.,100.)
+        self.sigmaxSpin.setProperty("value", 30.)
         self.sigmaxSpin.setObjectName(_fromUtf8("sigmaxSpin"))
         self.gridLayout.addWidget(self.sigmaxSpin, 3, 0, 1, 1)
 
@@ -51,7 +52,8 @@ class Ui_Form(object):
         self.gridLayout.addWidget(self.sigmaxlabel, 3, 1, 1, 1)
 
         self.sigmaySpin = QtGui.QDoubleSpinBox(Form)
-        self.sigmaySpin.setProperty("value", 200.)
+        self.sigmaySpin.setRange(0.,100.)
+        self.sigmaySpin.setProperty("value", 50.)
         self.sigmaySpin.setObjectName(_fromUtf8("sigmaySpin"))
         self.gridLayout.addWidget(self.sigmaySpin, 4, 0, 1, 1)
 
@@ -59,14 +61,14 @@ class Ui_Form(object):
         self.sigmaylabel.setObjectName(_fromUtf8("sigmaylabel"))
         self.gridLayout.addWidget(self.sigmaylabel, 4, 1, 1, 1)
 
-        self.rotangleSpin = QtGui.QDoubleSpinBox(Form)
-        self.rotangleSpin.setProperty("value", 200.)
-        self.rotangleSpin.setObjectName(_fromUtf8("rotangleSpin"))
-        self.gridLayout.addWidget(self.rotangleSpin, 5, 0, 1, 1)
+        # self.rotangleSpin = QtGui.QDoubleSpinBox(Form)
+        # self.rotangleSpin.setProperty("value", 200.)
+        # self.rotangleSpin.setObjectName(_fromUtf8("rotangleSpin"))
+        # self.gridLayout.addWidget(self.rotangleSpin, 5, 0, 1, 1)
 
-        self.rotanglelabel = QtGui.QLabel(Form)
-        self.rotanglelabel.setObjectName(_fromUtf8("rotanglelabel"))
-        self.gridLayout.addWidget(self.rotanglelabel, 5, 1, 1, 1)
+        # self.rotanglelabel = QtGui.QLabel(Form)
+        # self.rotanglelabel.setObjectName(_fromUtf8("rotanglelabel"))
+        # self.gridLayout.addWidget(self.rotanglelabel, 5, 1, 1, 1)
 
 
 
@@ -76,7 +78,10 @@ class Ui_Form(object):
         self.gridLayout.addWidget(self.camsettingslabel, 2, 2, 1, 2)
 
         self.exposureSpin = QtGui.QDoubleSpinBox(Form)
-        self.exposureSpin.setProperty("value", 200.)
+        self.exposureSpin.setRange(0.,100.)
+        self.exposureSpin.setProperty("value", 1.)
+        self.exposureSpin.setDecimals(4)
+        self.exposureSpin.setSingleStep(0.1)
         self.exposureSpin.setObjectName(_fromUtf8("exposureSpin"))
         self.gridLayout.addWidget(self.exposureSpin, 3, 2, 1, 1)
 
@@ -84,8 +89,9 @@ class Ui_Form(object):
         self.exposurelabel.setObjectName(_fromUtf8("exposurelabel"))
         self.gridLayout.addWidget(self.exposurelabel, 3, 3, 1, 1)
 
-        self.gainSpin = QtGui.QDoubleSpinBox(Form)
-        self.gainSpin.setProperty("value", 200.)
+        self.gainSpin = QtGui.QSpinBox(Form)
+        self.gainSpin.setRange(16,64)
+        self.gainSpin.setProperty("value", 16)
         self.gainSpin.setObjectName(_fromUtf8("gainSpin"))
         self.gridLayout.addWidget(self.gainSpin, 4, 2, 1, 1)
 
@@ -102,10 +108,11 @@ class Ui_Form(object):
 
 
         self.horRadio = QtGui.QRadioButton(Form)
+        self.horRadio.setChecked(True)
         self.horRadio.setObjectName(_fromUtf8("horRadio"))
         self.gridLayout.addWidget(self.horRadio, 3, 4, 1, 1)
         self.vertRadio = QtGui.QRadioButton(Form)
-        self.vertRadio.setChecked(True)
+        # self.vertRadio.setChecked(True)
         self.vertRadio.setObjectName(_fromUtf8("vertRadio"))
         self.gridLayout.addWidget(self.vertRadio, 4, 4, 1, 1)
         self.stack = QtGui.QStackedWidget(Form)
@@ -115,17 +122,22 @@ class Ui_Form(object):
 
         self.optionslabel = QtGui.QLabel(Form)
         self.optionslabel.setObjectName(_fromUtf8("optionslabel"))
-        self.gridLayout.addWidget(self.optionslabel, 2, 5, 1, 1)
+        self.gridLayout.addWidget(self.optionslabel, 1, 5, 1, 1)
 
         self.fitCheck = QtGui.QCheckBox(Form)
         self.fitCheck.setObjectName(_fromUtf8("fitCheck"))
-        self.gridLayout.addWidget(self.fitCheck, 3, 5, 1, 1)
+        self.gridLayout.addWidget(self.fitCheck, 2, 5, 1, 1)
         self.fitCheck.setChecked(True)
 
         self.trackCheck = QtGui.QCheckBox(Form)
         self.trackCheck.setObjectName(_fromUtf8("trackCheck"))
-        self.gridLayout.addWidget(self.trackCheck, 4, 5, 1, 1)
+        self.gridLayout.addWidget(self.trackCheck, 3, 5, 1, 1)
         self.trackCheck.setChecked(True)
+
+        self.refCheck = QtGui.QCheckBox(Form)
+        self.refCheck.setObjectName(_fromUtf8("refCheck"))
+        self.gridLayout.addWidget(self.refCheck, 4, 5, 1, 1)
+        self.refCheck.setChecked(True)
 
 
 
@@ -147,9 +159,9 @@ class Ui_Form(object):
         self.y0label.setText(QtGui.QApplication.translate("Form", "y(0)", None, QtGui.QApplication.UnicodeUTF8))
         self.sigmaxlabel.setText(QtGui.QApplication.translate("Form", "sigma x", None, QtGui.QApplication.UnicodeUTF8))
         self.sigmaylabel.setText(QtGui.QApplication.translate("Form", "sigma y", None, QtGui.QApplication.UnicodeUTF8))
-        self.rotanglelabel.setText(QtGui.QApplication.translate("Form", "Rotation angle", None, QtGui.QApplication.UnicodeUTF8))
+        # self.rotanglelabel.setText(QtGui.QApplication.translate("Form", "Rotation angle", None, QtGui.QApplication.UnicodeUTF8))
         self.camsettingslabel.setText(QtGui.QApplication.translate("Form", "Camera settings", None, QtGui.QApplication.UnicodeUTF8))
-        self.exposurelabel.setText(QtGui.QApplication.translate("Form", "Exposure time", None, QtGui.QApplication.UnicodeUTF8))
+        self.exposurelabel.setText(QtGui.QApplication.translate("Form", "Exposure time [ms]", None, QtGui.QApplication.UnicodeUTF8))
         self.gainlabel.setText(QtGui.QApplication.translate("Form", "Gain", None, QtGui.QApplication.UnicodeUTF8))
         
 
@@ -160,6 +172,7 @@ class Ui_Form(object):
         self.optionslabel.setText(QtGui.QApplication.translate("Form", "Options", None, QtGui.QApplication.UnicodeUTF8))
         self.fitCheck.setText(QtGui.QApplication.translate("Form", "Show Fit", None, QtGui.QApplication.UnicodeUTF8))
         self.trackCheck.setText(QtGui.QApplication.translate("Form", "Track Beam", None, QtGui.QApplication.UnicodeUTF8))
+        self.refCheck.setText(QtGui.QApplication.translate("Form", "Show Reference Beam", None, QtGui.QApplication.UnicodeUTF8))
 
 
 from pyqtgraph import GraphicsLayoutWidget
