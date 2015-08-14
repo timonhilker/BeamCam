@@ -73,7 +73,7 @@ class GaussBeamSimulation:
 
         self.image +=gauss
 
-    def SimulateTotalImage(self,expectation=150,meanamplitude=200,meansigmax=30,meansigmay=30,meanposition=[376,239]):
+    def SimulateTotalImage(self,expectation=150,meanamplitude=200,meansigmax=20,meansigmay=20,meanposition=[376,239]):
         self.image = np.zeros((self.height,self.width))
         noise =  np.random.poisson(expectation,self.image.shape).astype(int)
 
@@ -106,7 +106,7 @@ class GaussBeamSimulation:
 
         self.image = self.image + noise + gauss
 
-    def CreateImages(self,number=20):
+    def CreateImages(self,number=10):
         i = 0
         self.imageslist = []
         for i in range(number):
@@ -116,7 +116,7 @@ class GaussBeamSimulation:
             i += 1
 
 
-    def ChooseImage(self,number=20):
+    def ChooseImage(self,number=10):
         i = np.random.randint(0,number-1)
         # print i, 'i'
         self.image = self.imageslist[i]

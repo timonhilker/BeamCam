@@ -93,6 +93,9 @@ def StartGUI(camera='Simulation is used'):
     roi.addScaleHandle([0, 0.5], [0.5, 0.5])
     view.addItem(roi)
     roi.setZValue(10)  # make sure ROI is drawn above
+    bounds = QtCore.QRectF(0,0,753,479)
+    roi.maxBounds = bounds
+
 
     symbol = ['x']
     peak = pg.PlotDataItem(symbol = symbol,symbolPen='g',Pen=None,symbolBrush='g',symbolSize=25)
@@ -128,6 +131,30 @@ def StartGUI(camera='Simulation is used'):
     p2 = imagewidget.addPlot(colspan=1)
     p2.setMaximumHeight(200)
 
+    texthtml = '<div style="text-align: center"><span style="color: #FFF; font-size: 16pt;">Beam Properties</span><br>\
+    <span style="color: #FFF; font-size: 10pt;">Horizontal Position: 233,2</span><br>\
+    <span style="color: #FFF; font-size: 10pt;">Vertical Position: 233,2</span><br>\
+    <span style="color: #FFF; font-size: 10pt;">Horizontal Waist: 233,2</span><br>\
+    <span style="color: #FFF; font-size: 10pt;">Vertical Waist: 233,2</span></div>'
+
+    text = pg.TextItem(html=texthtml, anchor=(0.,0.), border='w', fill=(0, 0, 255, 100))
+    textbox = imagewidget.addPlot()
+    textbox.addItem(text)
+    textbox.setMaximumWidth(200)
+    textbox.setMaximumHeight(200)
+    textbox.setMinimumWidth(200)
+    textbox.setMinimumHeight(200)
+    textbox.hideAxis('left')
+    textbox.hideAxis('bottom')
+    text.setTextWidth(190)
+    text.setPos(0.02,0.75)
+    # textbox.setAspectLocked(True)
+    # textbox.setRange(xRange=(0,200))
+    # textbox.setLimits(xMin=0,xMax=200)
+
+
+
+
     #cross hair
     vLine = pg.InfiniteLine(angle=90, movable=False)
     hLine = pg.InfiniteLine(angle=0, movable=False)
@@ -154,6 +181,8 @@ def StartGUI(camera='Simulation is used'):
             view.setRange(QtCore.QRectF(0, 0, 754, 480))
             ui.x0Spin.setRange(0.,754.)
             ui.y0Spin.setRange(0.,480.)
+            bounds = QtCore.QRectF(0,0,753,479)
+            roi.maxBounds = bounds
             if RealData==False:
                 simulation.ChooseImage()
                 ImageArray = simulation.image
@@ -164,6 +193,8 @@ def StartGUI(camera='Simulation is used'):
             view.setRange(QtCore.QRectF(0, 0, 480, 754))
             ui.x0Spin.setRange(0.,480.)
             ui.y0Spin.setRange(0.,754.)
+            bounds = QtCore.QRectF(0,0,479,753)
+            roi.maxBounds = bounds
             if RealData==False:
                 simulation.ChooseImage()
                 ImageArray = simulation.image.T
@@ -211,6 +242,12 @@ def StartGUI(camera='Simulation is used'):
 
         if ui.fitCheck.isChecked():
             p3.plot(MatTools.gaussian(xvert,*FittedParamsVert), pen=(0,255,0)).rotate(90)
+            x = FittedParamsHor[2]+roi.pos()[0]
+            y = FittedParamsVert[2]+roi.pos()[1]
+            waistx = FittedParamsHor[1]
+            waisty = FittedParamsVert[1]
+
+            updatetext(x,y,waistx,waisty)
 
 
         if ui.trackCheck.isChecked():
@@ -278,12 +315,20 @@ def StartGUI(camera='Simulation is used'):
             # contour.clear()
             refcontour.setData(x,y,clear=True)
 
-
-
-
         else:
             peakpos.clear()
             refcontour.clear()
+
+
+
+    def updatetext(x,y,waistx,waisty):
+
+        text.setHtml('<div style="text-align: center"><span style="color: #FFF; font-size: 16pt;">Beam Properties</span><br>\
+            <span style="color: #FFF; font-size: 10pt;">Horizontal Position: %0.2f</span><br>\
+            <span style="color: #FFF; font-size: 10pt;">Vertical Position: %0.2f</span><br>\
+            <span style="color: #FFF; font-size: 10pt;">Horizontal Waist: %0.2f</span><br>\
+            <span style="color: #FFF; font-size: 10pt;">Vertical Waist: %0.2f</span></div>' %(x,y,waistx,waisty))
+
 
 
     roi.sigRegionChanged.connect(updateRoi)
