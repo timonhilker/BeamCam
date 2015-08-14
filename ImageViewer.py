@@ -66,6 +66,8 @@ def StartGUI(camera='Simulation is used'):
         ui.exposureSpin.setProperty("value", ExpoTime)
         GainValue = camera.GetGainValue(camera.CamIndex)
         ui.gainSpin.setProperty("value", GainValue)
+        # Switch off status LED
+        camera.SetStatusLED(camera.CamIndex,False)
 
 
     global img

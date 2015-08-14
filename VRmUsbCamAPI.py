@@ -27,6 +27,7 @@ BlacklevelAdjustAddress = c_int(0x1072)
 FlipHorizontalAddress = c_int(0x1046)
 FlipVerticalAddress = c_int(0x1047)
 SourceFormatAddress = c_int(0x3000)
+StatusLEDAddress = c_int(0x2008)
 
 class CameraKey(Structure):
     '''Struct that holds the key of a camera'''
@@ -534,6 +535,26 @@ class VRmagicUSBCam_API:
             self.ShowErrorInformation()
         if Error==1:
             print 'Flip Vertical set to: ', FlipVertical.value
+
+
+
+    def GetStatusLED(self,device):
+
+        StatusLED = c_bool(0)
+        Error = self.dll.VRmUsbCamGetPropertyValueB(device, StatusLEDAddress, byref(StatusLED))
+        if Error==0:
+            self.ShowErrorInformation()
+        if Error==1:
+            print 'Status LED on: ', StatusLED.value
+
+    def SetStatusLED(self,device,statusled=False):
+
+        StatusLED = c_bool(statusled)
+        Error = self.dll.VRmUsbCamSetPropertyValueB(device, StatusLEDAddress, byref(statusled))
+        if Error==0:
+            self.ShowErrorInformation()
+        if Error==1:
+            print 'Status LED set to: ', StatusLED.value
 
 
     '''------------------------------------------------------------------------'''
