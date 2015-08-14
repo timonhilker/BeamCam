@@ -550,7 +550,7 @@ class VRmagicUSBCam_API:
     def SetStatusLED(self,device,statusled=False):
 
         StatusLED = c_bool(statusled)
-        Error = self.dll.VRmUsbCamSetPropertyValueB(device, StatusLEDAddress, byref(statusled))
+        Error = self.dll.VRmUsbCamSetPropertyValueB(device, StatusLEDAddress, byref(StatusLED))
         if Error==0:
             self.ShowErrorInformation()
         if Error==1:
