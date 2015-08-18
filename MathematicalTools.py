@@ -14,8 +14,8 @@ from scipy.optimize import leastsq
 def gaussian(x, *p):
     '''returns gaussfunction'''
     A,sigx,x0,off = p
-    A = A*(sigx*np.sqrt(2*np.pi))
-    g = (A/(sigx*np.sqrt(2*np.pi)))*np.exp(-0.5*((x-x0)/sigx)**2)+off
+    A = A*(sigx*np.sqrt(np.pi/2.))
+    g = (A/(sigx*np.sqrt(np.pi/2.)))*np.exp(-2.*((x-x0)/sigx)**2)+off
 
     return g
 

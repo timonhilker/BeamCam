@@ -102,6 +102,13 @@ class Ui_Form(object):
 
 
 
+        self.hold =  QtGui.QPushButton('Hold')
+        self.hold.setObjectName(_fromUtf8("hold"))
+        self.gridLayout.addWidget(self.hold, 1, 4, 1, 1)
+        self.hold.setCheckable(True)
+        # self.hold.setChecked(False)
+
+
         self.orientationlabel = QtGui.QLabel(Form)
         self.orientationlabel.setObjectName(_fromUtf8("orientationlabel"))
         self.gridLayout.addWidget(self.orientationlabel, 2, 4, 1, 1)
@@ -142,6 +149,8 @@ class Ui_Form(object):
 
 
 
+
+
         self.plot = GraphicsLayoutWidget(Form)
         self.plot.setObjectName(_fromUtf8("plot"))
         self.gridLayout.addWidget(self.plot, 0, 0, 1, 6)
@@ -157,8 +166,8 @@ class Ui_Form(object):
         # self.pixelModeCheck.setText(QtGui.QApplication.translate("Form", "pixel mode", None, QtGui.QApplication.UnicodeUTF8))
         self.x0label.setText(QtGui.QApplication.translate("Form", "x(0)", None, QtGui.QApplication.UnicodeUTF8))
         self.y0label.setText(QtGui.QApplication.translate("Form", "y(0)", None, QtGui.QApplication.UnicodeUTF8))
-        self.sigmaxlabel.setText(QtGui.QApplication.translate("Form", "sigma x", None, QtGui.QApplication.UnicodeUTF8))
-        self.sigmaylabel.setText(QtGui.QApplication.translate("Form", "sigma y", None, QtGui.QApplication.UnicodeUTF8))
+        self.sigmaxlabel.setText(QtGui.QApplication.translate("Form", "Waist horizontal", None, QtGui.QApplication.UnicodeUTF8))
+        self.sigmaylabel.setText(QtGui.QApplication.translate("Form", "Waist vertical", None, QtGui.QApplication.UnicodeUTF8))
         # self.rotanglelabel.setText(QtGui.QApplication.translate("Form", "Rotation angle", None, QtGui.QApplication.UnicodeUTF8))
         self.camsettingslabel.setText(QtGui.QApplication.translate("Form", "Camera settings", None, QtGui.QApplication.UnicodeUTF8))
         self.exposurelabel.setText(QtGui.QApplication.translate("Form", "Exposure time [ms]", None, QtGui.QApplication.UnicodeUTF8))

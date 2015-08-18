@@ -176,44 +176,54 @@ def StartGUI(camera='Simulation is used'):
         # simulation.AddWhiteNoise()
         # simulation.AddRandomGauss()
         # simulation.SimulateTotalImage()
+        hold = False
+        hold = ui.hold.isChecked()
 
-        if ui.horRadio.isChecked():
-            view.setRange(QtCore.QRectF(0, 0, 754, 480))
-            ui.x0Spin.setRange(0.,754.)
-            ui.y0Spin.setRange(0.,480.)
-            bounds = QtCore.QRectF(0,0,753,479)
-            roi.maxBounds = bounds
-            if RealData==False:
-                simulation.ChooseImage()
-                ImageArray = simulation.image
-            else:
+        if hold==False:
+            
+            if ui.horRadio.isChecked():
+                view.setRange(QtCore.QRectF(0, 0, 754, 480))
+                ui.x0Spin.setRange(0.,754.)
+                ui.y0Spin.setRange(0.,480.)
+                bounds = QtCore.QRectF(0,0,753,479)
+                roi.maxBounds = bounds
+                if RealData==False:
+                    simulation.ChooseImage()
+                    ImageArray = simulation.image
+                else:
+                    camera.GrabNextImage()
+                    ImageArray = camera.ImageArray
+            elif ui.vertRadio.isChecked():
+                view.setRange(QtCore.QRectF(0, 0, 480, 754))
+                ui.x0Spin.setRange(0.,480.)
+                ui.y0Spin.setRange(0.,754.)
+                bounds = QtCore.QRectF(0,0,479,753)
+                roi.maxBounds = bounds
+                if RealData==False:
+                    simulation.ChooseImage()
+                    ImageArray = simulation.image.T
+                else:
+                    camera.GrabNextImage()
+                    ImageArray = camera.ImageArray.T
+
+            if RealData:
+                camera.SetExposureTime(camera.CamIndex,ui.exposureSpin.value())
+                camera.SetGainValue(camera.CamIndex,ui.gainSpin.value())
+
+            img.setImage(ImageArray.T)
+            updateRoi()
+
+        else:
+            if RealData:
                 camera.GrabNextImage()
-                ImageArray = camera.ImageArray
-        elif ui.vertRadio.isChecked():
-            view.setRange(QtCore.QRectF(0, 0, 480, 754))
-            ui.x0Spin.setRange(0.,480.)
-            ui.y0Spin.setRange(0.,754.)
-            bounds = QtCore.QRectF(0,0,479,753)
-            roi.maxBounds = bounds
-            if RealData==False:
-                simulation.ChooseImage()
-                ImageArray = simulation.image.T
-            else:
-                camera.GrabNextImage()
-                ImageArray = camera.ImageArray.T
-
-        if RealData:
-            camera.SetExposureTime(camera.CamIndex,ui.exposureSpin.value())
-            camera.SetGainValue(camera.CamIndex,ui.gainSpin.value())
 
 
 
 
-        
-        img.setImage(ImageArray.T)
 
-        # contour.clear()
-        updateRoi()
+            
+            
+      
 
     def updateRoi():
 
@@ -329,12 +339,22 @@ def StartGUI(camera='Simulation is used'):
             <span style="color: #FFF; font-size: 10pt;">Horizontal Waist: %0.2f</span><br>\
             <span style="color: #FFF; font-size: 10pt;">Vertical Waist: %0.2f</span></div>' %(x,y,waistx,waisty))
 
+    def updatehold():
+        global hold
+        hold = True
+        print hold, 'Hold'
 
 
-    roi.sigRegionChanged.connect(updateRoi)
+   
+        
+    
 
     viewtimer = QtCore.QTimer()
+
+    
+    roi.sigRegionChanged.connect(updateRoi)
     viewtimer.timeout.connect(updateview)
+    
     viewtimer.start(0)
 
     app.exec_()
