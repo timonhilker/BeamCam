@@ -26,7 +26,7 @@ from ImageViewerTemplate import Ui_Form
 # reload(ImageViewerTemplate)
 
 
-RealData = False
+RealData = True
 
 
 
@@ -161,8 +161,34 @@ def StartGUI(camera='Simulation is used'):
     view.addItem(vLine, ignoreBounds=True)
     view.addItem(hLine, ignoreBounds=True)
 
+    '''Errorhandling not implemented properly!!'''
+
     if RealData:
+
+        camera.GetDeviceKeyList()
+        NumberCams = camera.GetDeviceKeyListSize()
+        if NumberCams != 0:
+            for i in range(NumberCams):
+                camera.GetDeviceKeyListEntry(camindex=i)
+                serial = camera.GetDeviceInformation()
+                ui.choosecam.addItem(serial)
+                i += 1
+
+
+
+        else:
+            print 'ERROR -- No cameras found!!'
+
+        camera.CamIndex = c_uint(ui.choosecam.currentIndex())
+        # print camera.CamIndex.value, 'Camera Index'
+        camera.StartCam()
         InitializeCam(camera,ui)
+
+
+
+
+
+
 
     win.show()
 
@@ -182,7 +208,7 @@ def StartGUI(camera='Simulation is used'):
         if hold==False:
             
             if ui.horRadio.isChecked():
-                view.setRange(QtCore.QRectF(0, 0, 754, 480))
+                # view.setRange(QtCore.QRectF(0, 0, 754, 480))
                 ui.x0Spin.setRange(0.,754.)
                 ui.y0Spin.setRange(0.,480.)
                 bounds = QtCore.QRectF(0,0,753,479)
@@ -194,7 +220,7 @@ def StartGUI(camera='Simulation is used'):
                     camera.GrabNextImage()
                     ImageArray = camera.ImageArray
             elif ui.vertRadio.isChecked():
-                view.setRange(QtCore.QRectF(0, 0, 480, 754))
+                # view.setRange(QtCore.QRectF(0, 0, 480, 754))
                 ui.x0Spin.setRange(0.,480.)
                 ui.y0Spin.setRange(0.,754.)
                 bounds = QtCore.QRectF(0,0,479,753)
@@ -345,6 +371,10 @@ def StartGUI(camera='Simulation is used'):
         print hold, 'Hold'
 
 
+    def updatecam():
+        '''TO IMPLEMENT!!!!!'''
+
+
    
         
     
@@ -368,8 +398,8 @@ if RealData==False:
     StartGUI()
 else: 
     camera = CamAPI.VRmagicUSBCam_API()
-    camera.InitializeCam()
-    camera.StartCam()
+    # camera.InitializeCam()
+    # camera.StartCam()
     StartGUI(camera)
     camera.StopCam()
 

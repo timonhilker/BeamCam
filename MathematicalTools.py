@@ -22,6 +22,7 @@ def gaussian(x, *p):
 
 
 def rotmatrix(alpha):
+    '''returns a 2d rotation matrix'''
     return np.array([[np.cos(alpha), -np.sin(alpha)], [np.sin(alpha),  np.cos(alpha)]])
 
 
@@ -39,12 +40,17 @@ def gaussian2(xy, *p):
 
 
 def FitGaussian(data):
+    '''fits gaussian to data'''
 
     def split(arr, size):
+        '''
+        EXPERIMENTAL!
+        reduce size of fit array by taking mean over a certain number of cells
+        '''
         arrs = []
         while len(arr) > size:
-            pice = arr[:size]
-            arrs.append(pice)
+            piece = arr[:size]
+            arrs.append(piece)
             arr   = arr[size:]
         arrs.append(arr)
         arrs = np.array(arrs)

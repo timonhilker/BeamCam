@@ -3,12 +3,19 @@
 Created on Mon Aug 04 15:59:45 2015
 
 @author: Michael
+
+This Script provides a Python interface to VR Magic USB Cameras. It only contains the most relevant methods.
+If necessary, other methods can be implemented by using the the header file "vrmusbcam2.h".
 """
 
 from ctypes import *
 import numpy as np
 import sys
 
+'''
+DO NOT CHANGE!!
+Adresses of adjustable properties of the camera.
+'''
 ExposureTimeAddress = c_int(0x1001)
 ExposureAutoAddress = c_int(0x1003)
 GainValueAddress = c_int(0x1023)
@@ -96,6 +103,7 @@ class VRmagicUSBCam_API:
 
 
     def ShowErrorInformation(self):
+        '''In case an error occurs, the method shows the according error message in the console'''
 
         inf = POINTER(c_char)
         addr = self.dll.VRmUsbCamGetLastError()
@@ -113,6 +121,7 @@ class VRmagicUSBCam_API:
 
 
     def GetDeviceKeyList(self):
+        '''The method gets the device key list'''
 
         Error = self.dll.VRmUsbCamUpdateDeviceKeyList()
 
@@ -122,6 +131,10 @@ class VRmagicUSBCam_API:
         print 'KeyList'
 
     def GetDeviceKeyListSize(self):
+        '''
+        The method gets the size of the device key list.
+        The size gives the number of connected cameras.
+        '''
 
         No=c_uint(0)
         Error = self.dll.VRmUsbCamGetDeviceKeyListSize(byref(No))
@@ -131,13 +144,15 @@ class VRmagicUSBCam_API:
             return No.value
         else:
             self.ShowErrorInformation()
+            return 0
 
         
 
 
-    def GetDeviceKeyListEntry(self):
+    def GetDeviceKeyListEntry(self,camindex=0):
+        '''The method gets the key that belongs to a camera with a certain index.'''
 
-        self.CamIndex = 0
+        self.CamIndex = camindex
         self.CamIndex = c_uint(self.CamIndex)
 
         # Key_p = POINTER(CameraKey)
@@ -155,9 +170,11 @@ class VRmagicUSBCam_API:
         
 
     def GetDeviceInformation(self):
+        '''The method gets information about a camera (product ID and serial string).'''
 
         if self.keytest==0:
             print 'No valid key available!'
+            return None
         else:
             ID = c_uint(0)
 
@@ -180,16 +197,22 @@ class VRmagicUSBCam_API:
             print 'Serial String: ', serial
             print 'Busy: ', self.key.contents.m_busy
 
+            return serial
+
 
     '''
     ---------------------------------------------------------------------------
     ---------------------------------------------------------------------------
     Functions to handle important properties
+    The 'Get...' Function gets the actual value;
+    The 'Set...' Function sets the value to the committed value
     ---------------------------------------------------------------------------
     ---------------------------------------------------------------------------
     '''
 
 
+
+    '''Exposure time'''
     def GetExposureTime(self,device):
 
         ExpoTime = c_float(0.0)
@@ -210,7 +233,7 @@ class VRmagicUSBCam_API:
         #     print 'Exposure Time set to: ', ExpoTime.value, 'ms'
 
 
-
+    '''Automatic adjustment of exposure time'''
     def GetExposureAuto(self,device):
 
         ExpoAuto = c_bool(False)
@@ -230,7 +253,7 @@ class VRmagicUSBCam_API:
             print 'Exposure Auto set to: ', ExpoAuto.value
 
 
-
+    '''Gain'''
     def GetGainValue(self,device):
 
         GainValue = c_int(0)
@@ -252,7 +275,7 @@ class VRmagicUSBCam_API:
 
 
 
-
+    '''Automatic adjustment of gain'''
     def GetGainAuto(self,device):
 
         GainAuto = c_bool(0)
@@ -272,7 +295,7 @@ class VRmagicUSBCam_API:
             print 'Gain Auto set to: ', GainAuto.value
 
 
-
+    '''Gamma filter'''
     def GetFilterGamma(self,device):
 
         FilterGamma = c_float(0.)
@@ -292,7 +315,7 @@ class VRmagicUSBCam_API:
             print 'Filter Gamma set to: ', FilterGamma.value
 
 
-
+    '''Filter contrast'''
     def GetFilterContrast(self,device):
 
         FilterContrast = c_float(0.)
@@ -312,7 +335,7 @@ class VRmagicUSBCam_API:
             print 'Filter Contrast set to: ', FilterContrast.value
 
 
-
+    '''Filter luminance'''
     def GetFilterLuminance(self,device):
 
         FilterLuminance = c_int(0)
@@ -332,7 +355,7 @@ class VRmagicUSBCam_API:
             print 'Filter Luminance set to: ', FilterLuminance.value
 
 
-
+    '''Filter blacklevel'''
     def GetFilterBlacklevel(self,device):
 
         FilterBlacklevel = c_int(0)
@@ -352,7 +375,7 @@ class VRmagicUSBCam_API:
             print 'Filter Blacklevel set to: ', FilterBlacklevel.value
 
 
-
+    '''Sensor ROI'''
     def GetSensorRoi(self,device):
 
         SensorRoi = Rect()
@@ -377,7 +400,7 @@ class VRmagicUSBCam_API:
             print 'Sensor Roi set to: ', SensorRoi.m_left, ':', SensorRoi.m_width, 'X', SensorRoi.m_top, ':', SensorRoi.m_height
 
 
-
+    '''Pixel clock'''
     def GetPixelClock(self,device):
 
         PixelClock = c_float(0.)
@@ -397,7 +420,7 @@ class VRmagicUSBCam_API:
             print 'Pixel Clock set to: ', PixelClock.value
 
 
-
+    '''HBlank duration'''
     def GetHBlankDuration(self,device):
 
         HBlankDuration = c_int(0)
@@ -417,7 +440,7 @@ class VRmagicUSBCam_API:
             print 'HBlank Duration set to: ', HBlankDuration.value
 
 
-
+    '''VBlank duration'''
     def GetVBlankDuration(self,device):
 
         VBlankDuration = c_int(0)
@@ -437,7 +460,7 @@ class VRmagicUSBCam_API:
             print 'VBlank Duration set to: ', VBlankDuration.value
 
 
-
+    '''VRef'''
     def GetVRef(self,device):
 
         VRef = c_int(0)
@@ -457,7 +480,7 @@ class VRmagicUSBCam_API:
             print 'VRef set to: ', VRef.value
 
 
-
+    '''Automatic adjustment of blacklevel'''
     def GetBlacklevelAuto(self,device):
 
         BlacklevelAuto = c_bool(0)
@@ -477,7 +500,7 @@ class VRmagicUSBCam_API:
             print 'Blacklevel Auto set to: ', BlacklevelAuto.value
 
 
-
+    '''Blacklevel adjust'''
     def GetBlacklevelAdjust(self,device):
 
         BlacklevelAdjust = c_int(0)
@@ -497,7 +520,7 @@ class VRmagicUSBCam_API:
             print 'Blacklevel Adjust set to: ', BlacklevelAdjust.value
 
 
-
+    '''Flip horizontal'''
     def GetFlipHorizontal(self,device):
 
         FlipHorizontal = c_bool(0)
@@ -517,7 +540,7 @@ class VRmagicUSBCam_API:
             print 'Flip Horizontal set to: ', FlipHorizontal.value
 
 
-
+    '''Flip vertical'''
     def GetFlipVertical(self,device):
 
         FlipVertical = c_bool(0)
@@ -537,7 +560,7 @@ class VRmagicUSBCam_API:
             print 'Flip Vertical set to: ', FlipVertical.value
 
 
-
+    '''Switch on/off status LED'''
     def GetStatusLED(self,device):
 
         StatusLED = c_bool(0)
@@ -594,12 +617,14 @@ class VRmagicUSBCam_API:
 
 
     def UseSourceFormat(self):
+        '''Get the source format and safe it as 'self.format'.'''
         Error = self.dll.VRmUsbCamGetSourceFormatEx(self.CamIndex,c_uint(1),byref(self.format))
         if Error==0:
             self.ShowErrorInformation()
 
 
     def GetSourceFormatInformation(self):
+        '''Get information about the source format and print it in the console.'''
         inf = POINTER(c_char)()
 
         Error = self.dll.VRmUsbCamGetSourceFormatDescription(self.CamIndex,c_uint(1),byref(inf))
@@ -620,6 +645,10 @@ class VRmagicUSBCam_API:
 
 
     def GrabNextImage(self):
+        '''
+        The next image is grabbed and stored as a 'numpy array'.
+        This array can then be used by external programs to display the image or a live view.
+        '''
 
         self.dll.VRmUsbCamLockNextImageEx2.argtypes = [c_uint,c_uint,POINTER(POINTER(Image)),POINTER(c_uint),c_int]
                 
@@ -654,6 +683,7 @@ class VRmagicUSBCam_API:
 
 
     def InitializeCam(self):
+        '''The available cameras are intitialized.'''
 
         self.GetDeviceKeyList()
         self.GetDeviceKeyListEntry()
@@ -662,6 +692,7 @@ class VRmagicUSBCam_API:
 
 
     def StartCam(self):
+        '''One camera is started.'''
 
         if self.keytest==0:
             print 'No valid key available!'
@@ -683,6 +714,7 @@ class VRmagicUSBCam_API:
                 print 'Started Cam'
 
     def StopCam(self):
+        '''One camera is stopped.'''
 
         Error = self.dll.VRmUsbCamStop(self.CamIndex)
         if Error==0:
