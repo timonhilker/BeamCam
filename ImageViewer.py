@@ -173,14 +173,16 @@ def StartGUI(camera='Simulation is used'):
                 serial = camera.GetDeviceInformation()
                 ui.choosecam.addItem(serial)
                 i += 1
+            ui.choosecam.addItem('Test') #only for testing!!
 
 
 
         else:
             print 'ERROR -- No cameras found!!'
 
-        camera.CamIndex = c_uint(ui.choosecam.currentIndex())
-        # print camera.CamIndex.value, 'Camera Index'
+        CamIndex = ui.choosecam.currentIndex()
+        camera.GetDeviceKeyListEntry(camindex=CamIndex)
+        print camera.CamIndex.value, 'Camera Index'
         camera.StartCam()
         InitializeCam(camera,ui)
 
@@ -258,6 +260,7 @@ def StartGUI(camera='Simulation is used'):
         global ImageArray, img
 
         selected = roi.getArrayRegion(ImageArray.T, img)
+        amplitude = selected.sum()
         p2.plot(selected.sum(axis=1), clear=True)
 
 
@@ -283,7 +286,7 @@ def StartGUI(camera='Simulation is used'):
             waistx = FittedParamsHor[1]
             waisty = FittedParamsVert[1]
 
-            updatetext(x,y,waistx,waisty)
+            updatetext(amplitude,x,y,waistx,waisty)
 
 
         if ui.trackCheck.isChecked():
@@ -357,13 +360,14 @@ def StartGUI(camera='Simulation is used'):
 
 
 
-    def updatetext(x,y,waistx,waisty):
+    def updatetext(amplitude,x,y,waistx,waisty):
 
         text.setHtml('<div style="text-align: center"><span style="color: #FFF; font-size: 16pt;">Beam Properties</span><br>\
+            <span style="color: #FFF; font-size: 10pt;">Amplitude: %0.2f</span><br>\
             <span style="color: #FFF; font-size: 10pt;">Horizontal Position: %0.2f</span><br>\
             <span style="color: #FFF; font-size: 10pt;">Vertical Position: %0.2f</span><br>\
             <span style="color: #FFF; font-size: 10pt;">Horizontal Waist: %0.2f</span><br>\
-            <span style="color: #FFF; font-size: 10pt;">Vertical Waist: %0.2f</span></div>' %(x,y,waistx,waisty))
+            <span style="color: #FFF; font-size: 10pt;">Vertical Waist: %0.2f</span></div>' %(amplitude,x,y,waistx,waisty))
 
     def updatehold():
         global hold
@@ -372,7 +376,15 @@ def StartGUI(camera='Simulation is used'):
 
 
     def updatecam():
-        '''TO IMPLEMENT!!!!!'''
+        camera.StopCam()
+        CamIndex = ui.choosecam.currentIndex()
+        print ui.choosecam.currentIndex(), 'Current Index'
+        camera.GetDeviceKeyListEntry(camindex=CamIndex)
+        camera.StartCam()
+        InitializeCam(camera,ui)
+        # print 'Camera changed!', camera.CamIndex.value
+
+
 
 
    
@@ -381,6 +393,7 @@ def StartGUI(camera='Simulation is used'):
 
     viewtimer = QtCore.QTimer()
 
+    ui.choosecam.currentIndexChanged[int].connect(updatecam)
     
     roi.sigRegionChanged.connect(updateRoi)
     viewtimer.timeout.connect(updateview)

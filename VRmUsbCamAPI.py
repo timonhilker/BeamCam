@@ -100,6 +100,7 @@ class VRmagicUSBCam_API:
     def __init__(self, dllPath='vrmusbcam2.dll'):
         self.dll = cdll.LoadLibrary(dllPath)
         self.keytest = 0
+        # self.CamIndex = c_uint(0)
 
 
     def ShowErrorInformation(self):
