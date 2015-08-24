@@ -21,6 +21,7 @@ import pyqtgraph.ptime as ptime
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import sys
+import time
 
 from ImageViewerTemplate import Ui_Form
 # reload(ImageViewerTemplate)
@@ -126,6 +127,10 @@ def StartGUI(camera='Simulation is used'):
     # p3.rotate(90)
     p3.setMaximumWidth(200)
 
+    amphist = imagewidget.addPlot(colspan=1,title='Amplitude<br>in ROI')
+    amphist.setMaximumWidth(100)
+    amphist.hideAxis('bottom')
+
     # Another plot area for displaying ROI data
     imagewidget.nextRow()
     p2 = imagewidget.addPlot(colspan=1)
@@ -160,6 +165,12 @@ def StartGUI(camera='Simulation is used'):
     hLine = pg.InfiniteLine(angle=0, movable=False)
     view.addItem(vLine, ignoreBounds=True)
     view.addItem(hLine, ignoreBounds=True)
+
+
+    databuffer = np.empty([7,500])
+    bufferrange = np.arange(500)
+    databuffer[0,:] = bufferrange
+    starttime = time.time()
 
     '''Errorhandling not implemented properly!!'''
 
@@ -263,6 +274,12 @@ def StartGUI(camera='Simulation is used'):
         amplitude = selected.sum()
         p2.plot(selected.sum(axis=1), clear=True)
 
+        '''Shift buffer one step forward'''
+        databuffer[1:,:-1] = databuffer[1:,1:]
+        actualtime = time.time()
+        databuffer[1,-1] = actualtime - starttime
+        databuffer[2,-1] = amplitude
+
 
 
         datahor = selected.sum(axis=1)
@@ -275,6 +292,12 @@ def StartGUI(camera='Simulation is used'):
 
         p3.plot(selected.sum(axis=0), clear=True).rotate(90)
 
+        # yamp,xamp = np.histogram(amplitude, bins=np.array(1))
+        # print yamp,xamp,'Hist'
+        xamp = np.array([1.,2.])
+        yamp = np.array([amplitude])
+        amphist.plot(xamp, yamp, stepMode=True, clear=True, fillLevel=0, brush=(0,0,255,150))
+
         datavert = selected.sum(axis=0)
         FittedParamsVert = MatTools.FitGaussian(datavert)[0]
         xvert = np.arange(datavert.size)
@@ -285,6 +308,11 @@ def StartGUI(camera='Simulation is used'):
             y = FittedParamsVert[2]+roi.pos()[1]
             waistx = FittedParamsHor[1]
             waisty = FittedParamsVert[1]
+
+            databuffer[3,-1] = x
+            databuffer[4,-1] = y
+            databuffer[5,-1] = waistx
+            databuffer[6,-1] = waisty
 
             updatetext(amplitude,x,y,waistx,waisty)
 
