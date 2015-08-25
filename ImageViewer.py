@@ -27,7 +27,7 @@ from ImageViewerTemplate import Ui_Form
 # reload(ImageViewerTemplate)
 
 
-RealData = True
+RealData = False
 
 
 
@@ -71,7 +71,7 @@ def StartGUI(camera='Simulation is used'):
         camera.SetStatusLED(camera.CamIndex,False)
 
 
-    global img
+    global img, databuffer
 
     app = QtGui.QApplication([])
 
@@ -131,6 +131,9 @@ def StartGUI(camera='Simulation is used'):
     amphist.setMaximumWidth(100)
     amphist.hideAxis('bottom')
 
+    timeplot = imagewidget.addPlot(colspan=1,title='Time Evolution')
+    timeplot.setMaximumWidth(400)
+
     # Another plot area for displaying ROI data
     imagewidget.nextRow()
     p2 = imagewidget.addPlot(colspan=1)
@@ -167,8 +170,8 @@ def StartGUI(camera='Simulation is used'):
     view.addItem(hLine, ignoreBounds=True)
 
 
-    databuffer = np.empty([7,500])
-    bufferrange = np.arange(500)
+    databuffer = np.zeros([7,100])
+    bufferrange = np.arange(100)
     databuffer[0,:] = bufferrange
     starttime = time.time()
 
@@ -226,6 +229,11 @@ def StartGUI(camera='Simulation is used'):
                 ui.y0Spin.setRange(0.,480.)
                 bounds = QtCore.QRectF(0,0,753,479)
                 roi.maxBounds = bounds
+                roisize = roi.size()
+                if roisize[1] > 479:
+                    roi.setSize([200,200])
+                    
+
                 if RealData==False:
                     simulation.ChooseImage()
                     ImageArray = simulation.image
@@ -238,6 +246,10 @@ def StartGUI(camera='Simulation is used'):
                 ui.y0Spin.setRange(0.,754.)
                 bounds = QtCore.QRectF(0,0,479,753)
                 roi.maxBounds = bounds
+                roisize = roi.size()
+                if roisize[0] > 479:
+                    roi.setSize([200,200])
+
                 if RealData==False:
                     simulation.ChooseImage()
                     ImageArray = simulation.image.T
@@ -268,7 +280,7 @@ def StartGUI(camera='Simulation is used'):
 
         
 
-        global ImageArray, img
+        global ImageArray, img, databuffer
 
         selected = roi.getArrayRegion(ImageArray.T, img)
         amplitude = selected.sum()
@@ -386,6 +398,8 @@ def StartGUI(camera='Simulation is used'):
             peakpos.clear()
             refcontour.clear()
 
+        updatetimescrolling()
+
 
 
     def updatetext(amplitude,x,y,waistx,waisty):
@@ -411,6 +425,48 @@ def StartGUI(camera='Simulation is used'):
         camera.StartCam()
         InitializeCam(camera,ui)
         # print 'Camera changed!', camera.CamIndex.value
+
+
+    def updatetimescrolling():
+
+
+        if ui.fitCheck.isChecked():
+            ui.poshorRadio.setEnabled(True)
+            ui.posvertRadio.setEnabled(True)
+            ui.waisthorRadio.setEnabled(True)
+            ui.waistvertRadio.setEnabled(True)
+            ui.distRadio.setEnabled(True)
+            if ui.ampRadio.isChecked():
+                timeplot.plot(databuffer[0,:],databuffer[2,:],clear=True)
+
+            if ui.poshorRadio.isChecked():
+                timeplot.plot(databuffer[0,:],databuffer[3,:],clear=True)
+
+            if ui.posvertRadio.isChecked():
+                timeplot.plot(databuffer[0,:],databuffer[4,:],clear=True)
+
+            if ui.waisthorRadio.isChecked():
+                timeplot.plot(databuffer[0,:],databuffer[5,:],clear=True)
+
+            if ui.waistvertRadio.isChecked():
+                timeplot.plot(databuffer[0,:],databuffer[6,:],clear=True)
+
+            if ui.distRadio.isChecked():
+                distance = np.sqrt((databuffer[3,:]-ui.x0Spin.value())**2+\
+                    (databuffer[4,:]-ui.y0Spin.value())**2)
+                timeplot.plot(databuffer[0,:],distance,clear=True)
+
+        else:
+            ui.ampRadio.setChecked(True)
+            timeplot.plot(databuffer[0,:],databuffer[2,:],clear=True)
+            ui.poshorRadio.setEnabled(False)
+            ui.posvertRadio.setEnabled(False)
+            ui.waisthorRadio.setEnabled(False)
+            ui.waistvertRadio.setEnabled(False)
+            ui.distRadio.setEnabled(False)
+
+
+
 
 
 

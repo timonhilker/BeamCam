@@ -15,7 +15,7 @@ class Ui_Form(object):
     def setupUi(self, Form):
         '''Defines the general properties of the window'''
         Form.setObjectName(_fromUtf8("Form"))
-        Form.resize(1200, 1000)
+        Form.resize(1500, 1000)
         self.gridLayout = QtGui.QGridLayout(Form)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
 
@@ -131,6 +131,7 @@ class Ui_Form(object):
         self.gridLayout.addWidget(self.orientationlabel, 2, 4, 1, 1)
 
         '''Defines the buttons for choosing the orientation'''
+        self.OrientationGroup = QtGui.QButtonGroup(Form)
         self.horRadio = QtGui.QRadioButton(Form)
         self.horRadio.setChecked(True)
         self.horRadio.setObjectName(_fromUtf8("horRadio"))
@@ -139,8 +140,11 @@ class Ui_Form(object):
         # self.vertRadio.setChecked(True)
         self.vertRadio.setObjectName(_fromUtf8("vertRadio"))
         self.gridLayout.addWidget(self.vertRadio, 4, 4, 1, 1)
-        self.stack = QtGui.QStackedWidget(Form)
-        self.stack.setObjectName(_fromUtf8("stack"))
+        # self.stack = QtGui.QStackedWidget(Form)
+        # self.stack.setObjectName(_fromUtf8("stack"))
+        self.OrientationGroup.addButton(self.horRadio)
+        self.OrientationGroup.addButton(self.vertRadio)
+
 
 
         '''Defines the heading for the 'options' column'''
@@ -167,18 +171,59 @@ class Ui_Form(object):
         self.refCheck.setChecked(True)
 
 
+        '''Defines the heading for the 'time evolution plot' column'''
+        self.evplotlabel = QtGui.QLabel(Form)
+        self.evplotlabel.setObjectName(_fromUtf8("evplotlabel"))
+        self.gridLayout.addWidget(self.evplotlabel, 1, 6, 1, 1)
+
+        '''Defines the buttons for the time evolution plot'''
+        self.TimeEvGroup = QtGui.QButtonGroup(Form)
+        self.ampRadio = QtGui.QRadioButton(Form)
+        self.ampRadio.setChecked(True)
+        self.ampRadio.setObjectName(_fromUtf8("ampRadio"))
+        self.gridLayout.addWidget(self.ampRadio, 2, 6, 1, 1)
+
+        self.poshorRadio = QtGui.QRadioButton(Form)
+        # self.poshorRadio.setChecked(True)
+        self.poshorRadio.setObjectName(_fromUtf8("poshorRadio"))
+        self.gridLayout.addWidget(self.poshorRadio, 3, 6, 1, 1)
+
+        self.posvertRadio = QtGui.QRadioButton(Form)
+        self.posvertRadio.setObjectName(_fromUtf8("posvertRadio"))
+        self.gridLayout.addWidget(self.posvertRadio, 4, 6, 1, 1)
+
+        self.waisthorRadio = QtGui.QRadioButton(Form)
+        self.waisthorRadio.setObjectName(_fromUtf8("waisthorRadio"))
+        self.gridLayout.addWidget(self.waisthorRadio, 5, 6, 1, 1)
+
+        self.waistvertRadio = QtGui.QRadioButton(Form)
+        self.waistvertRadio.setObjectName(_fromUtf8("waistvertRadio"))
+        self.gridLayout.addWidget(self.waistvertRadio, 6, 6, 1, 1)
+
+        self.distRadio = QtGui.QRadioButton(Form)
+        self.distRadio.setObjectName(_fromUtf8("distRadio"))
+        self.gridLayout.addWidget(self.distRadio, 7, 6, 1, 1)
+        
+        self.TimeEvGroup.addButton(self.ampRadio)
+        self.TimeEvGroup.addButton(self.poshorRadio)
+        self.TimeEvGroup.addButton(self.posvertRadio)
+        self.TimeEvGroup.addButton(self.waisthorRadio)
+        self.TimeEvGroup.addButton(self.waistvertRadio)
+        self.TimeEvGroup.addButton(self.distRadio)
+
+
 
 
 
         '''Defines the plot widget'''
         self.plot = GraphicsLayoutWidget(Form)
         self.plot.setObjectName(_fromUtf8("plot"))
-        self.gridLayout.addWidget(self.plot, 0, 0, 1, 6)
+        self.gridLayout.addWidget(self.plot, 0, 0, 1, 7)
 
 
         '''Puts everything together'''
         self.retranslateUi(Form)
-        self.stack.setCurrentIndex(2)
+        # self.stack.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
     def retranslateUi(self, Form):
@@ -204,6 +249,14 @@ class Ui_Form(object):
         self.fitCheck.setText(QtGui.QApplication.translate("Form", "Show Fit", None, QtGui.QApplication.UnicodeUTF8))
         self.trackCheck.setText(QtGui.QApplication.translate("Form", "Track Beam", None, QtGui.QApplication.UnicodeUTF8))
         self.refCheck.setText(QtGui.QApplication.translate("Form", "Show Reference Beam", None, QtGui.QApplication.UnicodeUTF8))
+
+        self.evplotlabel.setText(QtGui.QApplication.translate("Form", "Time Evolution Plot", None, QtGui.QApplication.UnicodeUTF8))
+        self.ampRadio.setText(QtGui.QApplication.translate("Form", "Amplitude", None))
+        self.poshorRadio.setText(QtGui.QApplication.translate("Form", "Horizontal position", None))
+        self.posvertRadio.setText(QtGui.QApplication.translate("Form", "Vertical position", None))
+        self.waisthorRadio.setText(QtGui.QApplication.translate("Form", "Horizontal waist", None))
+        self.waistvertRadio.setText(QtGui.QApplication.translate("Form", "Vertical waist", None))
+        self.distRadio.setText(QtGui.QApplication.translate("Form", "Distance", None))
 
 
 from pyqtgraph import GraphicsLayoutWidget
