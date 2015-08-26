@@ -117,10 +117,17 @@ class Ui_Form(object):
 
 
 
+        '''Defines the 'Connect ROI' push button'''
+        self.connect =  QtGui.QPushButton('Connect ROI')
+        self.connect.setObjectName(_fromUtf8("connect"))
+        self.gridLayout.addWidget(self.connect, 1, 4, 1, 1)
+        self.connect.setCheckable(True)
+        self.connect.setToolTip('Connect position of ROI<br>with the position of the peak')
+
         '''Defines the 'Hold' push button'''
         self.hold =  QtGui.QPushButton('Hold')
         self.hold.setObjectName(_fromUtf8("hold"))
-        self.gridLayout.addWidget(self.hold, 1, 4, 1, 1)
+        self.gridLayout.addWidget(self.hold, 2, 4, 1, 1)
         self.hold.setCheckable(True)
         self.hold.setToolTip('Pause the live view')
         # self.hold.setChecked(False)
@@ -128,18 +135,18 @@ class Ui_Form(object):
         '''Defins the text box for the 'orientation' heading'''
         self.orientationlabel = QtGui.QLabel(Form)
         self.orientationlabel.setObjectName(_fromUtf8("orientationlabel"))
-        self.gridLayout.addWidget(self.orientationlabel, 2, 4, 1, 1)
+        self.gridLayout.addWidget(self.orientationlabel, 3, 4, 1, 1)
 
         '''Defines the buttons for choosing the orientation'''
         self.OrientationGroup = QtGui.QButtonGroup(Form)
         self.horRadio = QtGui.QRadioButton(Form)
         self.horRadio.setChecked(True)
         self.horRadio.setObjectName(_fromUtf8("horRadio"))
-        self.gridLayout.addWidget(self.horRadio, 3, 4, 1, 1)
+        self.gridLayout.addWidget(self.horRadio, 4, 4, 1, 1)
         self.vertRadio = QtGui.QRadioButton(Form)
         # self.vertRadio.setChecked(True)
         self.vertRadio.setObjectName(_fromUtf8("vertRadio"))
-        self.gridLayout.addWidget(self.vertRadio, 4, 4, 1, 1)
+        self.gridLayout.addWidget(self.vertRadio, 5, 4, 1, 1)
         # self.stack = QtGui.QStackedWidget(Form)
         # self.stack.setObjectName(_fromUtf8("stack"))
         self.OrientationGroup.addButton(self.horRadio)

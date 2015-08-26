@@ -22,6 +22,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import sys
 import time
+import os
 
 from ImageViewerTemplate import Ui_Form
 # reload(ImageViewerTemplate)
@@ -69,6 +70,14 @@ def StartGUI(camera='Simulation is used'):
         ui.gainSpin.setProperty("value", GainValue)
         # Switch off status LED
         camera.SetStatusLED(camera.CamIndex,False)
+
+    def CreateFile(name='test'):
+        if not os.path.exists(name):
+            f = open(name+'.txt', 'w')
+            f.close()
+        else:
+            print 'A file with this name already exists!'
+
 
 
     global img, databuffer
@@ -175,6 +184,9 @@ def StartGUI(camera='Simulation is used'):
     databuffer[0,:] = bufferrange
     starttime = time.time()
 
+
+
+
     '''Errorhandling not implemented properly!!'''
 
     if RealData:
@@ -230,7 +242,11 @@ def StartGUI(camera='Simulation is used'):
                 bounds = QtCore.QRectF(0,0,753,479)
                 roi.maxBounds = bounds
                 roisize = roi.size()
+                roipos = roi.pos()
                 if roisize[1] > 479:
+                    roi.setSize([200,200])
+                if roipos[1] > (479-roisize[1]):
+                    roi.setPos([200,200])
                     roi.setSize([200,200])
                     
 
@@ -247,8 +263,13 @@ def StartGUI(camera='Simulation is used'):
                 bounds = QtCore.QRectF(0,0,479,753)
                 roi.maxBounds = bounds
                 roisize = roi.size()
+                roipos = roi.pos()
                 if roisize[0] > 479:
                     roi.setSize([200,200])
+                if roipos[0] > (479-roisize[0]):
+                    roi.setPos([200,200])
+                    roi.setSize([200,200])
+
 
                 if RealData==False:
                     simulation.ChooseImage()
@@ -262,7 +283,11 @@ def StartGUI(camera='Simulation is used'):
                 camera.SetGainValue(camera.CamIndex,ui.gainSpin.value())
 
             img.setImage(ImageArray.T)
-            updateRoi()
+
+            if ui.connect.isChecked():
+                upddateroipos(databuffer[3,-1],databuffer[4,-1])
+            else:
+                updateRoi()
 
         else:
             if RealData:
@@ -316,17 +341,21 @@ def StartGUI(camera='Simulation is used'):
 
         if ui.fitCheck.isChecked():
             p3.plot(MatTools.gaussian(xvert,*FittedParamsVert), pen=(0,255,0)).rotate(90)
-            x = FittedParamsHor[2]+roi.pos()[0]
-            y = FittedParamsVert[2]+roi.pos()[1]
+            poshor = FittedParamsHor[2]+roi.pos()[0]
+            posvert = FittedParamsVert[2]+roi.pos()[1]
             waistx = FittedParamsHor[1]
             waisty = FittedParamsVert[1]
 
-            databuffer[3,-1] = x
-            databuffer[4,-1] = y
+            databuffer[3,-1] = poshor
+            databuffer[4,-1] = posvert
             databuffer[5,-1] = waistx
             databuffer[6,-1] = waisty
 
-            updatetext(amplitude,x,y,waistx,waisty)
+            updatetext(amplitude,poshor,posvert,waistx,waisty)
+
+            
+
+            
 
 
         if ui.trackCheck.isChecked():
@@ -398,6 +427,8 @@ def StartGUI(camera='Simulation is used'):
             peakpos.clear()
             refcontour.clear()
 
+
+
         updatetimescrolling()
 
 
@@ -466,20 +497,27 @@ def StartGUI(camera='Simulation is used'):
             ui.distRadio.setEnabled(False)
 
 
+    def upddateroipos(x,y):
+        roisize = roi.size()
+        xpos = x-int(roisize[0]/2.)
+        if xpos < 0:
+            xpos = 0
+        ypos = y-int(roisize[1]/2.)
+        if ypos < 0:
+            ypos = 0
+        roi.setPos([xpos,ypos])
 
 
 
 
-
-   
-        
-    
 
     viewtimer = QtCore.QTimer()
 
     ui.choosecam.currentIndexChanged[int].connect(updatecam)
     
+    
     roi.sigRegionChanged.connect(updateRoi)
+
     viewtimer.timeout.connect(updateview)
     
     viewtimer.start(0)
