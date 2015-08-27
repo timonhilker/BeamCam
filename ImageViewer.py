@@ -243,11 +243,13 @@ def StartGUI(camera='Simulation is used'):
                 roi.maxBounds = bounds
                 roisize = roi.size()
                 roipos = roi.pos()
-                if roisize[1] > 479:
-                    roi.setSize([200,200])
-                if roipos[1] > (479-roisize[1]):
-                    roi.setPos([200,200])
-                    roi.setSize([200,200])
+                if roisize[1] >= 480:
+                    print roisize, roipos, 'ROI'
+                    roi.setSize([200,200],finish=False)
+                if roipos[1] >= (480-roisize[1]):
+                    print roisize, roipos, 'ROI'
+                    roi.setPos([200,200],finish=False)
+                    roi.setSize([200,200],finish=False)
                     
 
                 if RealData==False:
@@ -264,11 +266,11 @@ def StartGUI(camera='Simulation is used'):
                 roi.maxBounds = bounds
                 roisize = roi.size()
                 roipos = roi.pos()
-                if roisize[0] > 479:
-                    roi.setSize([200,200])
-                if roipos[0] > (479-roisize[0]):
-                    roi.setPos([200,200])
-                    roi.setSize([200,200])
+                if roisize[0] >= 480:
+                    roi.setSize([200,200],finish=False)
+                if roipos[0] >= (480-roisize[0]):
+                    roi.setPos([200,200],finish=False)
+                    roi.setSize([200,200],finish=False)
 
 
                 if RealData==False:
@@ -286,8 +288,8 @@ def StartGUI(camera='Simulation is used'):
 
             if ui.connect.isChecked():
                 upddateroipos(databuffer[3,-1],databuffer[4,-1])
-            else:
-                updateRoi()
+            
+            updateRoi()
 
         else:
             if RealData:
@@ -496,16 +498,31 @@ def StartGUI(camera='Simulation is used'):
             ui.waistvertRadio.setEnabled(False)
             ui.distRadio.setEnabled(False)
 
+    def saveroisize():
+        global origroisize
+        origroisize = roi.size()
+
 
     def upddateroipos(x,y):
-        roisize = roi.size()
-        xpos = x-int(roisize[0]/2.)
+        
+        imagesize = ImageArray.shape
+        xpos = x-int(origroisize[0]/2.)
+        xsize = origroisize[0]
+        ysize = origroisize[1]
         if xpos < 0:
             xpos = 0
-        ypos = y-int(roisize[1]/2.)
+        ypos = y-int(origroisize[1]/2.)
         if ypos < 0:
             ypos = 0
-        roi.setPos([xpos,ypos])
+        if xpos + origroisize[0] >= imagesize[1]:
+            xsize = imagesize[1] - xpos - 1
+        if ypos + origroisize[1] >= imagesize[0]:
+            ysize = imagesize[0] - ypos - 1
+
+
+        roi.setPos([xpos,ypos],finish=False)
+        roi.setSize([xsize,ysize],finish=False)
+        # roi.stateChanged()
 
 
 
@@ -514,9 +531,10 @@ def StartGUI(camera='Simulation is used'):
     viewtimer = QtCore.QTimer()
 
     ui.choosecam.currentIndexChanged[int].connect(updatecam)
+
+    ui.connect.toggled.connect(saveroisize)
     
-    
-    roi.sigRegionChanged.connect(updateRoi)
+    roi.sigRegionChangeFinished.connect(updateRoi)
 
     viewtimer.timeout.connect(updateview)
     
