@@ -76,7 +76,7 @@ class Ui_Form(object):
         # self.rotanglelabel.setObjectName(_fromUtf8("rotanglelabel"))
         # self.gridLayout.addWidget(self.rotanglelabel, 5, 1, 1, 1)
 
-
+        '''Defines the field to choose a camera'''
         self.choosecam = QtGui.QComboBox()
         self.choosecam.setObjectName(_fromUtf8("choosecam"))
         self.gridLayout.addWidget(self.choosecam, 1, 2, 1, 1)

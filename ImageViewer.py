@@ -2,6 +2,12 @@
 """
 Created on Thu Jul 16 10:18:13 2015
 
+This script starts the image viewer GUI for VRmagic USB Cameras.
+
+TO DO: -test with more than one camera and add error handling
+       -implement the option to save data
+       -implement the possibility to choose a different colormap for the image
+
 @author: Michael
 """
 
@@ -28,6 +34,11 @@ from ImageViewerTemplate import Ui_Form
 # reload(ImageViewerTemplate)
 
 
+'''
+For RealData = False a simple simulation of a gaussian beam profile is started for testing purpses.
+For RealData = True the USB hubs are scanned for available cameras. The camera can be choosen in the
+according menu window. The images of the choosen camera are displayed and can be analysed.
+'''
 RealData = False
 
 
@@ -35,9 +46,7 @@ RealData = False
 
 
 def Create2DGaussian(RoiShape,*Parameters):
-
-
-
+    '''Creates a 2D gaussian'''
 
     x = np.arange(RoiShape[1])
     y = np.arange(RoiShape[0])
@@ -55,6 +64,7 @@ def Create2DGaussian(RoiShape,*Parameters):
     return gauss
 
 def ellipse(x,sigmax,sigmay):
+    '''Creates an ellipse'''
     return np.sqrt((sigmay**2)*(1-((x**2)/(sigmax**2))))
 
 
@@ -62,8 +72,10 @@ def ellipse(x,sigmax,sigmay):
 
 
 def StartGUI(camera='Simulation is used'):
+    '''Starts the GUI'''
 
     def InitializeCam(camera,ui):
+        '''Initializes the camera, update the exposure time and gain value fields, switch off status LED'''
         ExpoTime = camera.GetExposureTime(camera.CamIndex)
         ui.exposureSpin.setProperty("value", ExpoTime)
         GainValue = camera.GetGainValue(camera.CamIndex)
@@ -72,6 +84,10 @@ def StartGUI(camera='Simulation is used'):
         camera.SetStatusLED(camera.CamIndex,False)
 
     def CreateFile(name='test'):
+        '''
+        creates an empty .txt file; intended for saving
+        not in use yet!
+        '''
         if not os.path.exists(name):
             f = open(name+'.txt', 'w')
             f.close()
@@ -82,48 +98,52 @@ def StartGUI(camera='Simulation is used'):
 
     global img, databuffer
 
+    # Setup UI
     app = QtGui.QApplication([])
-
     win = QtGui.QWidget()
-
     ui = Ui_Form()
     ui.setupUi(win)
 
-    # Image widget
+    # Create new image widget
     imagewidget = ui.plot
+
+    # Add view box for displaying the image
     view = imagewidget.addViewBox()
     view.setAspectLocked(True)
+
+    #Create image and add it to the view box
     img = pg.ImageItem(border='k')
     view.addItem(img)
     view.setRange(QtCore.QRectF(0, 0, 754, 754))
 
-    # Custom ROI for selecting an image region
+    # Create and add ROI for selecting an image region
     roi = pg.ROI([310, 210], [200, 200],pen='b')
     roi.addScaleHandle([0.5, 1], [0.5, 0.5])
     roi.addScaleHandle([0, 0.5], [0.5, 0.5])
     view.addItem(roi)
-    roi.setZValue(10)  # make sure ROI is drawn above
-    bounds = QtCore.QRectF(0,0,753,479)
+    roi.setZValue(10)  # Make sure ROI is drawn above
+    bounds = QtCore.QRectF(0,0,753,479) # Set bounds of the roi
     roi.maxBounds = bounds
 
-
+    # Create marker of the peak position of the beam
     symbol = ['x']
     peak = pg.PlotDataItem(symbol = symbol,symbolPen='g',Pen=None,symbolBrush='g',symbolSize=25)
     view.addItem(peak)
     peak.setZValue(20)
 
+    # Create marker of the reference peak
     symbol = ['x']
     peakpos = pg.PlotDataItem(symbol = symbol,symbolPen='r',Pen=None,symbolBrush='r',symbolSize=25)
     view.addItem(peakpos)
     peakpos.setZValue(20)
 
-
+    # Create contour of the beam
     contour = pg.PlotDataItem()
     contour.setPen('g')
     view.addItem(contour)
     contour.setZValue(30)
 
-
+    # Create contour of the reference beam
     refcontour = pg.PlotDataItem()
     refcontour.setPen('r')
     view.addItem(refcontour)
@@ -131,29 +151,41 @@ def StartGUI(camera='Simulation is used'):
 
 
 
-
-    p3 = imagewidget.addPlot(colspan=1)
+    # Add plot of the vertical sum of the ROI
+    p3 = imagewidget.addPlot(colspan=1,title='Sum Horizontal')
     # p3.rotate(90)
     p3.setMaximumWidth(200)
+    p3.setLabel('left',"Vertical Position",units='px')
+    p3.setLabel('bottom',"Intensity",units='')
 
+    # Create histogram to visualize the amplitude
     amphist = imagewidget.addPlot(colspan=1,title='Amplitude<br>in ROI')
     amphist.setMaximumWidth(100)
     amphist.hideAxis('bottom')
+    amphist.setLabel('left',"Amplitude",units='')
 
+    # Add plot of the time evolution of beam properties
     timeplot = imagewidget.addPlot(colspan=1,title='Time Evolution')
     timeplot.setMaximumWidth(400)
+    timeplot.setLabel('bottom', "Time", units='s')
 
-    # Another plot area for displaying ROI data
+    # Go to the next row
     imagewidget.nextRow()
-    p2 = imagewidget.addPlot(colspan=1)
-    p2.setMaximumHeight(200)
 
+    # Add plot of the horizontal sum of the ROI
+    p2 = imagewidget.addPlot(colspan=1,title='Sum Vertical')
+    p2.setMaximumHeight(200)
+    p2.setLabel('bottom',"Horizontal Position",units='px')
+    p2.setLabel('left',"Intensity",units='')
+
+    # Set text for the textbox to show the beam properties
     texthtml = '<div style="text-align: center"><span style="color: #FFF; font-size: 16pt;">Beam Properties</span><br>\
     <span style="color: #FFF; font-size: 10pt;">Horizontal Position: 233,2</span><br>\
     <span style="color: #FFF; font-size: 10pt;">Vertical Position: 233,2</span><br>\
     <span style="color: #FFF; font-size: 10pt;">Horizontal Waist: 233,2</span><br>\
     <span style="color: #FFF; font-size: 10pt;">Vertical Waist: 233,2</span></div>'
 
+    # Set text box for showing the beam properties
     text = pg.TextItem(html=texthtml, anchor=(0.,0.), border='w', fill=(0, 0, 255, 100))
     textbox = imagewidget.addPlot()
     textbox.addItem(text)
@@ -172,15 +204,16 @@ def StartGUI(camera='Simulation is used'):
 
 
 
-    #cross hair
+    # Create cross hair
     vLine = pg.InfiniteLine(angle=90, movable=False)
     hLine = pg.InfiniteLine(angle=0, movable=False)
     view.addItem(vLine, ignoreBounds=True)
     view.addItem(hLine, ignoreBounds=True)
 
-
-    databuffer = np.zeros([7,100])
-    bufferrange = np.arange(100)
+    # Set up data buffer for time evolution plots
+    buffersize = 100
+    databuffer = np.zeros([7,buffersize])
+    bufferrange = np.arange(buffersize)
     databuffer[0,:] = bufferrange
     starttime = time.time()
 
@@ -189,6 +222,7 @@ def StartGUI(camera='Simulation is used'):
 
     '''Errorhandling not implemented properly!!'''
 
+    # Check for available cameras and set up menu
     if RealData:
 
         camera.GetDeviceKeyList()
@@ -199,7 +233,7 @@ def StartGUI(camera='Simulation is used'):
                 serial = camera.GetDeviceInformation()
                 ui.choosecam.addItem(serial)
                 i += 1
-            ui.choosecam.addItem('Test') #only for testing!!
+            # ui.choosecam.addItem('Test') #only for testing!!
 
 
 
@@ -214,15 +248,18 @@ def StartGUI(camera='Simulation is used'):
 
 
 
-
-
-
-
+    # Show the window
     win.show()
 
 
                 
     def updateview():
+        '''
+        This method upadates the image that is shown. 
+        The orientation chosen is taken into account and the ROI boundaries are set properly.
+        When the 'Hold' Button is pressed, the image is not updated.
+        After updating the image, the method 'updateRoi' is called.
+        '''
 
         global ImageArray, img
 
@@ -304,24 +341,34 @@ def StartGUI(camera='Simulation is used'):
       
 
     def updateRoi():
-
-        
+        '''
+        In this method the Roi data is updated. It is called when the Roi position and/or shape changes
+        and when the image is updated. The ROI data is summed up in vertical and horizontal directions 
+        and plotted in the according diagrams. The total sum of the ROI is seen as Amplitude and displayed
+        in the plot. A gaussian is fitted to the sums in horizontal and vertical direction. The fit results 
+        are used to plot the peak position and contour. The beam properties are stored in a buffer and can
+        be plotted in the time evolution plot.
+        '''
 
         global ImageArray, img, databuffer
 
+        # Get ROI data
         selected = roi.getArrayRegion(ImageArray.T, img)
-        amplitude = selected.sum()
-        p2.plot(selected.sum(axis=1), clear=True)
 
-        '''Shift buffer one step forward'''
+        # Calculate amplitude
+        amplitude = selected.sum()
+        
+
+        # Shift buffer one step forward and store amplitude and time stamp
         databuffer[1:,:-1] = databuffer[1:,1:]
         actualtime = time.time()
         databuffer[1,-1] = actualtime - starttime
         databuffer[2,-1] = amplitude
 
 
-
+        # Plot sum in horizontal direction and fit gaussian
         datahor = selected.sum(axis=1)
+        p2.plot(datahor, clear=True)
         FittedParamsHor = MatTools.FitGaussian(datahor)[0]
         xhor = np.arange(datahor.size)
 
@@ -329,15 +376,14 @@ def StartGUI(camera='Simulation is used'):
             p2.plot(MatTools.gaussian(xhor,*FittedParamsHor), pen=(0,255,0))
 
 
-        p3.plot(selected.sum(axis=0), clear=True).rotate(90)
-
-        # yamp,xamp = np.histogram(amplitude, bins=np.array(1))
-        # print yamp,xamp,'Hist'
+        # Plot amplitude
         xamp = np.array([1.,2.])
         yamp = np.array([amplitude])
         amphist.plot(xamp, yamp, stepMode=True, clear=True, fillLevel=0, brush=(0,0,255,150))
 
+        # Plot sum in vertical direction and fit gaussian, save fit results in buffer and show in text box
         datavert = selected.sum(axis=0)
+        p3.plot(datavert, clear=True).rotate(90)
         FittedParamsVert = MatTools.FitGaussian(datavert)[0]
         xvert = np.arange(datavert.size)
 
@@ -363,25 +409,18 @@ def StartGUI(camera='Simulation is used'):
         if ui.trackCheck.isChecked():
 
             
-            # view.addItem(peak)
-
-            
-
+            # Adjust cross hair
             hLine.setPos(FittedParamsVert[2]+roi.pos()[1])
             vLine.setPos(FittedParamsHor[2]+roi.pos()[0])
 
             vLine.show()
             hLine.show()
 
-            # view.addItem(hLine)
-            # view.addItem(vLine)    
+            # Plot peak
             pos = np.array([[(FittedParamsHor[2]+roi.pos()[0]),(FittedParamsVert[2]+roi.pos()[1])]])           
             peak.setData(pos,clear=True)
 
-
-            # peakposition = np.array([[ui.x0Spin.value(),ui.y0Spin.value()]])
-            # peakpos.setData(peakposition,clear=True)
-
+            # Plot contour
             x = np.linspace(-(FittedParamsHor[1]),(FittedParamsHor[1]),1000)
             sigmax = FittedParamsHor[1]
             sigmay = FittedParamsVert[1]
@@ -399,12 +438,14 @@ def StartGUI(camera='Simulation is used'):
         else:
             # view.removeItem(hLine)
             # view.removeItem(vLine)
+
+            # Hide cross hair, peak and contour if 'Track beam' is not checked
             vLine.hide()
             hLine.hide()
             contour.clear()
             peak.clear()
 
-
+        #When checked, the reference beam peak and contour is plotted   
         if ui.refCheck.isChecked():
 
             peakposition = np.array([[ui.x0Spin.value(),ui.y0Spin.value()]])
@@ -430,12 +471,15 @@ def StartGUI(camera='Simulation is used'):
             refcontour.clear()
 
 
-
+        # Update the time evolution plot
         updatetimescrolling()
 
 
 
     def updatetext(amplitude,x,y,waistx,waisty):
+        '''
+        The textbox giving information about the beam is updated.
+        '''
 
         text.setHtml('<div style="text-align: center"><span style="color: #FFF; font-size: 16pt;">Beam Properties</span><br>\
             <span style="color: #FFF; font-size: 10pt;">Amplitude: %0.2f</span><br>\
@@ -445,12 +489,18 @@ def StartGUI(camera='Simulation is used'):
             <span style="color: #FFF; font-size: 10pt;">Vertical Waist: %0.2f</span></div>' %(amplitude,x,y,waistx,waisty))
 
     def updatehold():
+        '''
+        Updates the boolean variable 'hold' when the 'Hold' button is pressed.
+        '''
         global hold
         hold = True
         print hold, 'Hold'
 
 
     def updatecam():
+        '''
+        Updates the camera, when another one is chosen.
+        '''
         camera.StopCam()
         CamIndex = ui.choosecam.currentIndex()
         print ui.choosecam.currentIndex(), 'Current Index'
@@ -461,7 +511,11 @@ def StartGUI(camera='Simulation is used'):
 
 
     def updatetimescrolling():
+        '''
+        The time evolution plot is updated.
+        '''
 
+        timescale = databuffer[1,:] - databuffer[1,-1]
 
         if ui.fitCheck.isChecked():
             ui.poshorRadio.setEnabled(True)
@@ -470,28 +524,35 @@ def StartGUI(camera='Simulation is used'):
             ui.waistvertRadio.setEnabled(True)
             ui.distRadio.setEnabled(True)
             if ui.ampRadio.isChecked():
-                timeplot.plot(databuffer[0,:],databuffer[2,:],clear=True)
+                timeplot.plot(timescale,databuffer[2,:],clear=True)
+                timeplot.setLabel('left', "Amplitude", units='')
 
             if ui.poshorRadio.isChecked():
-                timeplot.plot(databuffer[0,:],databuffer[3,:],clear=True)
+                timeplot.plot(timescale,databuffer[3,:],clear=True)
+                timeplot.setLabel('left', "Horizontal Position", units='px')
 
             if ui.posvertRadio.isChecked():
-                timeplot.plot(databuffer[0,:],databuffer[4,:],clear=True)
+                timeplot.plot(timescale,databuffer[4,:],clear=True)
+                timeplot.setLabel('left', "Vertical Position", units='px')
 
             if ui.waisthorRadio.isChecked():
-                timeplot.plot(databuffer[0,:],databuffer[5,:],clear=True)
+                timeplot.plot(timescale,databuffer[5,:],clear=True)
+                timeplot.setLabel('left', "Horizontal Waist", units='px')
 
             if ui.waistvertRadio.isChecked():
-                timeplot.plot(databuffer[0,:],databuffer[6,:],clear=True)
+                timeplot.plot(timescale,databuffer[6,:],clear=True)
+                timeplot.setLabel('left', "Vertical Waist", units='px')
 
             if ui.distRadio.isChecked():
                 distance = np.sqrt((databuffer[3,:]-ui.x0Spin.value())**2+\
                     (databuffer[4,:]-ui.y0Spin.value())**2)
-                timeplot.plot(databuffer[0,:],distance,clear=True)
+                timeplot.plot(timescale,distance,clear=True)
+                timeplot.setLabel('left', "Distance to reference peak", units='px')
 
         else:
             ui.ampRadio.setChecked(True)
-            timeplot.plot(databuffer[0,:],databuffer[2,:],clear=True)
+            timeplot.plot(timescale,databuffer[2,:],clear=True)
+            timeplot.setLabel('left', "Amplitude", units='')
             ui.poshorRadio.setEnabled(False)
             ui.posvertRadio.setEnabled(False)
             ui.waisthorRadio.setEnabled(False)
@@ -499,11 +560,17 @@ def StartGUI(camera='Simulation is used'):
             ui.distRadio.setEnabled(False)
 
     def saveroisize():
+        '''
+        The ROI position is saved.
+        '''
         global origroisize
         origroisize = roi.size()
 
 
     def upddateroipos(x,y):
+        '''
+        The ROI position is updated. The bounds are respected.
+        '''
         
         imagesize = ImageArray.shape
         xpos = x-int(origroisize[0]/2.)
@@ -527,28 +594,36 @@ def StartGUI(camera='Simulation is used'):
 
 
 
-
+    # Start timer for the loop
     viewtimer = QtCore.QTimer()
 
+    # When another camera is chosen, the method 'updatecam' is called
     ui.choosecam.currentIndexChanged[int].connect(updatecam)
 
+    # When the 'Connect ROI' button is pressed, 'saveroisize' is called
     ui.connect.toggled.connect(saveroisize)
     
+    # When the ROI region has been changed, 'updateRoi' is called
     roi.sigRegionChangeFinished.connect(updateRoi)
 
+    # When the timer is timed out, 'updateview' is called
     viewtimer.timeout.connect(updateview)
     
+    # Start the timer: time out after 0 ms
     viewtimer.start(0)
 
+    # When the GUI is closed: stop the timer
     app.exec_()
     viewtimer.stop()
 
 
-
+# Start simulation
 if RealData==False:
     simulation = Sim.GaussBeamSimulation()
     simulation.CreateImages()
     StartGUI()
+
+# Start camera (API)
 else: 
     camera = CamAPI.VRmagicUSBCam_API()
     # camera.InitializeCam()
