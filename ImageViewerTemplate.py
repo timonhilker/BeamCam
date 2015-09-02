@@ -137,20 +137,35 @@ class Ui_Form(object):
         self.orientationlabel.setObjectName(_fromUtf8("orientationlabel"))
         self.gridLayout.addWidget(self.orientationlabel, 3, 4, 1, 1)
 
-        '''Defines the buttons for choosing the orientation'''
-        self.OrientationGroup = QtGui.QButtonGroup(Form)
-        self.horRadio = QtGui.QRadioButton(Form)
-        self.horRadio.setChecked(True)
-        self.horRadio.setObjectName(_fromUtf8("horRadio"))
-        self.gridLayout.addWidget(self.horRadio, 4, 4, 1, 1)
-        self.vertRadio = QtGui.QRadioButton(Form)
-        # self.vertRadio.setChecked(True)
-        self.vertRadio.setObjectName(_fromUtf8("vertRadio"))
-        self.gridLayout.addWidget(self.vertRadio, 5, 4, 1, 1)
-        # self.stack = QtGui.QStackedWidget(Form)
-        # self.stack.setObjectName(_fromUtf8("stack"))
-        self.OrientationGroup.addButton(self.horRadio)
-        self.OrientationGroup.addButton(self.vertRadio)
+        # '''Defines the buttons for choosing the orientation'''
+        # self.OrientationGroup = QtGui.QButtonGroup(Form)
+        # self.horRadio = QtGui.QRadioButton(Form)
+        # self.horRadio.setChecked(True)
+        # self.horRadio.setObjectName(_fromUtf8("horRadio"))
+        # self.gridLayout.addWidget(self.horRadio, 4, 4, 1, 1)
+        # self.vertRadio = QtGui.QRadioButton(Form)
+        # # self.vertRadio.setChecked(True)
+        # self.vertRadio.setObjectName(_fromUtf8("vertRadio"))
+        # self.gridLayout.addWidget(self.vertRadio, 5, 4, 1, 1)
+        # # self.stack = QtGui.QStackedWidget(Form)
+        # # self.stack.setObjectName(_fromUtf8("stack"))
+        # self.OrientationGroup.addButton(self.horRadio)
+        # self.OrientationGroup.addButton(self.vertRadio)
+
+
+        '''Defines the 'Rotate counterclockwise' push button'''
+        self.rotccw =  QtGui.QPushButton('Rotate counterclockwise')
+        self.rotccw.setObjectName(_fromUtf8("rotccw"))
+        self.gridLayout.addWidget(self.rotccw, 4, 4, 1, 1)
+        self.rotccw.setToolTip('Rotate the image 90 degrees counterclockwise')
+        # self.hold.setChecked(False)
+
+
+        '''Defines the 'Rotate clockwise' push button'''
+        self.rotcw =  QtGui.QPushButton('Rotate clockwise')
+        self.rotcw.setObjectName(_fromUtf8("rotcw"))
+        self.gridLayout.addWidget(self.rotcw, 5, 4, 1, 1)
+        self.rotcw.setToolTip('Rotate the image 90 degrees clockwise')
 
 
 
@@ -249,8 +264,8 @@ class Ui_Form(object):
         
 
         self.orientationlabel.setText(QtGui.QApplication.translate("Form", "Orientation", None, QtGui.QApplication.UnicodeUTF8))
-        self.horRadio.setText(QtGui.QApplication.translate("Form", "horizontal", None))
-        self.vertRadio.setText(QtGui.QApplication.translate("Form", "vertical", None))
+        # self.horRadio.setText(QtGui.QApplication.translate("Form", "horizontal", None))
+        # self.vertRadio.setText(QtGui.QApplication.translate("Form", "vertical", None))
 
         self.optionslabel.setText(QtGui.QApplication.translate("Form", "Options", None, QtGui.QApplication.UnicodeUTF8))
         self.fitCheck.setText(QtGui.QApplication.translate("Form", "Show Fit", None, QtGui.QApplication.UnicodeUTF8))

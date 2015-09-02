@@ -47,27 +47,40 @@ def FitGaussian(data):
         EXPERIMENTAL!
         reduce size of fit array by taking mean over a certain number of cells
         '''
-        arrs = []
-        while len(arr) > size:
-            piece = arr[:size]
-            arrs.append(piece)
-            arr   = arr[size:]
-        arrs.append(arr)
-        arrs = np.array(arrs)
+        length = arr.size
+        cutoff = length % size
+        arrs = arr[cutoff:]
+        arrs = arrs.reshape((int((length-cutoff)/size),size))
         arrs = np.mean(arrs, axis=1)
-        return arrs
+        return arrs, cutoff
 
     # x = np.arange(data.size)
-    # data = split(data,10)
+    usepervimpro = True # Should the 'split' method be used to improve performance?
+    meansize = 5 # if usepervimpro = True: how many values are taken together to calculate the mean.
+    critvalue = 200 # value from which on the 'split' method is used.
+
+    if usepervimpro:
+        if data.size > critvalue:
+            data, cutoff = split(data,meansize)
+            corr = (meansize-1)/2.
+            x = np.arange(data.size)*meansize + corr + cutoff
+        else:
+            x = np.arange(data.size)
+    else:
+        x = np.arange(data.size)
 
     # print data
 
     def errf(params):
-        x = np.arange(data.size)
+        '''
+        The errorfunction to be minimized
+        '''
+        # x = np.arange(data.size)
         return (data-gaussian(x,*params)) #take only every 10th value
 
-    x0ini = np.argmax(data)
-    Aini = data[x0ini]
+    x0iniarg = np.argmax(data)
+    Aini = data[x0iniarg]
+    x0ini = x[x0iniarg]
     sigxini = 10.
     offini = 1000.
 

@@ -96,7 +96,7 @@ def StartGUI(camera='Simulation is used'):
 
 
 
-    global img, databuffer
+    global img, databuffer, rotangle
 
     # Setup UI
     app = QtGui.QApplication([])
@@ -218,6 +218,9 @@ def StartGUI(camera='Simulation is used'):
     starttime = time.time()
 
 
+    rotangle = 0
+
+
 
 
     '''Errorhandling not implemented properly!!'''
@@ -271,8 +274,18 @@ def StartGUI(camera='Simulation is used'):
         hold = ui.hold.isChecked()
 
         if hold==False:
+
+
+            if RealData==False:
+                simulation.ChooseImage()
+                ImageArray = simulation.image
+            else:
+                camera.GrabNextImage()
+                ImageArray = camera.ImageArray
+
+            ImageArray = np.rot90(ImageArray,rotangle)
             
-            if ui.horRadio.isChecked():
+            if rotangle==0 or rotangle==2:
                 # view.setRange(QtCore.QRectF(0, 0, 754, 480))
                 ui.x0Spin.setRange(0.,754.)
                 ui.y0Spin.setRange(0.,480.)
@@ -289,13 +302,9 @@ def StartGUI(camera='Simulation is used'):
                     roi.setSize([200,200],finish=False)
                     
 
-                if RealData==False:
-                    simulation.ChooseImage()
-                    ImageArray = simulation.image
-                else:
-                    camera.GrabNextImage()
-                    ImageArray = camera.ImageArray
-            elif ui.vertRadio.isChecked():
+                
+
+            elif rotangle==1 or rotangle==3:
                 # view.setRange(QtCore.QRectF(0, 0, 480, 754))
                 ui.x0Spin.setRange(0.,480.)
                 ui.y0Spin.setRange(0.,754.)
@@ -310,12 +319,7 @@ def StartGUI(camera='Simulation is used'):
                     roi.setSize([200,200],finish=False)
 
 
-                if RealData==False:
-                    simulation.ChooseImage()
-                    ImageArray = simulation.image.T
-                else:
-                    camera.GrabNextImage()
-                    ImageArray = camera.ImageArray.T
+               
 
             if RealData:
                 camera.SetExposureTime(camera.CamIndex,ui.exposureSpin.value())
@@ -334,6 +338,27 @@ def StartGUI(camera='Simulation is used'):
 
 
 
+    def updaterotangleccw():
+        '''
+        In this method the variable 'rotangle', indicating the rotation of the image is
+        shifted forward by one in the counterclockwise direction.
+        '''
+        global rotangle
+
+        rotangle = rotangle + 3
+        rotangle = rotangle % 4
+
+
+    def updaterotanglecw():
+        '''
+        In this method the variable 'rotangle', indicating the rotation of the image is
+        shifted forward by one in the clockwise direction.
+        '''
+        global rotangle
+
+        rotangle = rotangle + 1
+        rotangle = rotangle % 4
+    
 
 
             
@@ -605,6 +630,12 @@ def StartGUI(camera='Simulation is used'):
     
     # When the ROI region has been changed, 'updateRoi' is called
     roi.sigRegionChangeFinished.connect(updateRoi)
+
+    # When the 'Rotate counterclockwise' button is clicked, call 'updaterotangleccw'
+    ui.rotccw.clicked.connect(updaterotangleccw)
+
+    # When the 'Rotate clockwise' button is clicked, call 'updaterotanglecw'
+    ui.rotcw.clicked.connect(updaterotanglecw)
 
     # When the timer is timed out, 'updateview' is called
     viewtimer.timeout.connect(updateview)
