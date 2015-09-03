@@ -19,53 +19,59 @@ class Ui_Form(object):
         self.gridLayout = QtGui.QGridLayout(Form)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
 
+
+        '''Defines the text label for reference beam properties'''
+        self.refbeamlabel = QtGui.QLabel(Form)
+        self.refbeamlabel.setObjectName(_fromUtf8("refbeamlabel"))
+        self.gridLayout.addWidget(self.refbeamlabel, 1, 0, 1, 1)
+
         '''Defines the spin box for x0'''
         self.x0Spin = QtGui.QDoubleSpinBox(Form)
         self.x0Spin.setRange(0.,754.)
         self.x0Spin.setProperty("value", 350)
         self.x0Spin.setObjectName(_fromUtf8("x0Spin"))
-        self.gridLayout.addWidget(self.x0Spin, 1, 0, 1, 1)
+        self.gridLayout.addWidget(self.x0Spin, 2, 0, 1, 1)
         
         '''Defines the label for the x0 spin box'''
         self.x0label = QtGui.QLabel(Form)
         self.x0label.setObjectName(_fromUtf8("x0label"))
-        self.gridLayout.addWidget(self.x0label, 1, 1, 1, 1)
+        self.gridLayout.addWidget(self.x0label, 2, 1, 1, 1)
 
         '''Defines the spin box for y0'''
         self.y0Spin = QtGui.QDoubleSpinBox(Form)
         self.y0Spin.setRange(0.,480.)
         self.y0Spin.setProperty("value", 240)
         self.y0Spin.setObjectName(_fromUtf8("y0Spin"))
-        self.gridLayout.addWidget(self.y0Spin, 2, 0, 1, 1)
+        self.gridLayout.addWidget(self.y0Spin, 3, 0, 1, 1)
         
         '''Defines the label for the y0 spin box'''
         self.y0label = QtGui.QLabel(Form)
         self.y0label.setObjectName(_fromUtf8("y0label"))
-        self.gridLayout.addWidget(self.y0label, 2, 1, 1, 1)
+        self.gridLayout.addWidget(self.y0label, 3, 1, 1, 1)
 
         '''Defines the spin box for the horizontal waist'''
         self.sigmaxSpin = QtGui.QDoubleSpinBox(Form)
         self.sigmaxSpin.setRange(0.,100.)
         self.sigmaxSpin.setProperty("value", 30.)
         self.sigmaxSpin.setObjectName(_fromUtf8("sigmaxSpin"))
-        self.gridLayout.addWidget(self.sigmaxSpin, 3, 0, 1, 1)
+        self.gridLayout.addWidget(self.sigmaxSpin, 4, 0, 1, 1)
 
         '''Defines the label for the horizontal waist spin box'''
         self.sigmaxlabel = QtGui.QLabel(Form)
         self.sigmaxlabel.setObjectName(_fromUtf8("sigmaxlabel"))
-        self.gridLayout.addWidget(self.sigmaxlabel, 3, 1, 1, 1)
+        self.gridLayout.addWidget(self.sigmaxlabel, 4, 1, 1, 1)
 
         '''Defines the spin box for the vertical waist'''
         self.sigmaySpin = QtGui.QDoubleSpinBox(Form)
         self.sigmaySpin.setRange(0.,100.)
         self.sigmaySpin.setProperty("value", 50.)
         self.sigmaySpin.setObjectName(_fromUtf8("sigmaySpin"))
-        self.gridLayout.addWidget(self.sigmaySpin, 4, 0, 1, 1)
+        self.gridLayout.addWidget(self.sigmaySpin, 5, 0, 1, 1)
 
         '''Defines the label for the vertical waist spin box'''
         self.sigmaylabel = QtGui.QLabel(Form)
         self.sigmaylabel.setObjectName(_fromUtf8("sigmaylabel"))
-        self.gridLayout.addWidget(self.sigmaylabel, 4, 1, 1, 1)
+        self.gridLayout.addWidget(self.sigmaylabel, 5, 1, 1, 1)
 
         # self.rotangleSpin = QtGui.QDoubleSpinBox(Form)
         # self.rotangleSpin.setProperty("value", 200.)
@@ -76,10 +82,17 @@ class Ui_Form(object):
         # self.rotanglelabel.setObjectName(_fromUtf8("rotanglelabel"))
         # self.gridLayout.addWidget(self.rotanglelabel, 5, 1, 1, 1)
 
+
+        '''Defines the label for the camera'''
+        self.camlabel = QtGui.QLabel(Form)
+        self.camlabel.setObjectName(_fromUtf8("camlabel"))
+        self.gridLayout.addWidget(self.camlabel, 1, 2, 1, 1)
+
+
         '''Defines the field to choose a camera'''
         self.choosecam = QtGui.QComboBox()
         self.choosecam.setObjectName(_fromUtf8("choosecam"))
-        self.gridLayout.addWidget(self.choosecam, 1, 2, 1, 1)
+        self.gridLayout.addWidget(self.choosecam, 2, 2, 1, 1)
         # self.choosecam.addItem("Test 1")
         # self.choosecam.addItem("Test 2")
 
@@ -87,7 +100,7 @@ class Ui_Form(object):
         '''Defines the text label for camera settings'''
         self.camsettingslabel = QtGui.QLabel(Form)
         self.camsettingslabel.setObjectName(_fromUtf8("camsettingslabel"))
-        self.gridLayout.addWidget(self.camsettingslabel, 2, 2, 1, 2)
+        self.gridLayout.addWidget(self.camsettingslabel, 4, 2, 1, 2)
 
         '''Defines the spin box for the exposure time'''
         self.exposureSpin = QtGui.QDoubleSpinBox(Form)
@@ -96,24 +109,24 @@ class Ui_Form(object):
         self.exposureSpin.setDecimals(4)
         self.exposureSpin.setSingleStep(0.1)
         self.exposureSpin.setObjectName(_fromUtf8("exposureSpin"))
-        self.gridLayout.addWidget(self.exposureSpin, 3, 2, 1, 1)
+        self.gridLayout.addWidget(self.exposureSpin, 5, 2, 1, 1)
 
         '''Defines the label for the exposure time spin box'''
         self.exposurelabel = QtGui.QLabel(Form)
         self.exposurelabel.setObjectName(_fromUtf8("exposurelabel"))
-        self.gridLayout.addWidget(self.exposurelabel, 3, 3, 1, 1)
+        self.gridLayout.addWidget(self.exposurelabel, 5, 3, 1, 1)
 
         '''Defines the spin box for the gain value'''
         self.gainSpin = QtGui.QSpinBox(Form)
         self.gainSpin.setRange(16,64)
         self.gainSpin.setProperty("value", 16)
         self.gainSpin.setObjectName(_fromUtf8("gainSpin"))
-        self.gridLayout.addWidget(self.gainSpin, 4, 2, 1, 1)
+        self.gridLayout.addWidget(self.gainSpin, 6, 2, 1, 1)
 
         '''Defines the label for the gain value spin box'''
         self.gainlabel = QtGui.QLabel(Form)
         self.gainlabel.setObjectName(_fromUtf8("gainlabel"))
-        self.gridLayout.addWidget(self.gainlabel, 4, 3, 1, 1)
+        self.gridLayout.addWidget(self.gainlabel, 6, 3, 1, 1)
 
 
 
@@ -135,7 +148,7 @@ class Ui_Form(object):
         '''Defins the text box for the 'orientation' heading'''
         self.orientationlabel = QtGui.QLabel(Form)
         self.orientationlabel.setObjectName(_fromUtf8("orientationlabel"))
-        self.gridLayout.addWidget(self.orientationlabel, 3, 4, 1, 1)
+        self.gridLayout.addWidget(self.orientationlabel, 4, 4, 1, 1)
 
         # '''Defines the buttons for choosing the orientation'''
         # self.OrientationGroup = QtGui.QButtonGroup(Form)
@@ -156,7 +169,7 @@ class Ui_Form(object):
         '''Defines the 'Rotate counterclockwise' push button'''
         self.rotccw =  QtGui.QPushButton('Rotate counterclockwise')
         self.rotccw.setObjectName(_fromUtf8("rotccw"))
-        self.gridLayout.addWidget(self.rotccw, 4, 4, 1, 1)
+        self.gridLayout.addWidget(self.rotccw, 5, 4, 1, 1)
         self.rotccw.setToolTip('Rotate the image 90 degrees counterclockwise')
         # self.hold.setChecked(False)
 
@@ -164,7 +177,7 @@ class Ui_Form(object):
         '''Defines the 'Rotate clockwise' push button'''
         self.rotcw =  QtGui.QPushButton('Rotate clockwise')
         self.rotcw.setObjectName(_fromUtf8("rotcw"))
-        self.gridLayout.addWidget(self.rotcw, 5, 4, 1, 1)
+        self.gridLayout.addWidget(self.rotcw, 6, 4, 1, 1)
         self.rotcw.setToolTip('Rotate the image 90 degrees clockwise')
 
 
@@ -253,11 +266,13 @@ class Ui_Form(object):
 
         Form.setWindowTitle(QtGui.QApplication.translate("Form", "VRmagic USB Cam Live View", None, QtGui.QApplication.UnicodeUTF8))
         # self.pixelModeCheck.setText(QtGui.QApplication.translate("Form", "pixel mode", None, QtGui.QApplication.UnicodeUTF8))
+        self.refbeamlabel.setText(QtGui.QApplication.translate("Form", "Reference Beam", None, QtGui.QApplication.UnicodeUTF8))
         self.x0label.setText(QtGui.QApplication.translate("Form", "x(0)", None, QtGui.QApplication.UnicodeUTF8))
         self.y0label.setText(QtGui.QApplication.translate("Form", "y(0)", None, QtGui.QApplication.UnicodeUTF8))
         self.sigmaxlabel.setText(QtGui.QApplication.translate("Form", "Waist horizontal", None, QtGui.QApplication.UnicodeUTF8))
         self.sigmaylabel.setText(QtGui.QApplication.translate("Form", "Waist vertical", None, QtGui.QApplication.UnicodeUTF8))
         # self.rotanglelabel.setText(QtGui.QApplication.translate("Form", "Rotation angle", None, QtGui.QApplication.UnicodeUTF8))
+        self.camlabel.setText(QtGui.QApplication.translate("Form", "Camera", None, QtGui.QApplication.UnicodeUTF8))
         self.camsettingslabel.setText(QtGui.QApplication.translate("Form", "Camera settings", None, QtGui.QApplication.UnicodeUTF8))
         self.exposurelabel.setText(QtGui.QApplication.translate("Form", "Exposure time [ms]", None, QtGui.QApplication.UnicodeUTF8))
         self.gainlabel.setText(QtGui.QApplication.translate("Form", "Gain", None, QtGui.QApplication.UnicodeUTF8))

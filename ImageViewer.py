@@ -39,7 +39,7 @@ For RealData = False a simple simulation of a gaussian beam profile is started f
 For RealData = True the USB hubs are scanned for available cameras. The camera can be choosen in the
 according menu window. The images of the choosen camera are displayed and can be analysed.
 '''
-RealData = False
+RealData = True
 
 
 
@@ -211,7 +211,7 @@ def StartGUI(camera='Simulation is used'):
     view.addItem(hLine, ignoreBounds=True)
 
     # Set up data buffer for time evolution plots
-    buffersize = 100
+    buffersize = 100 # Change this number for showing a longer period in time evolution plots
     databuffer = np.zeros([7,buffersize])
     bufferrange = np.arange(buffersize)
     databuffer[0,:] = bufferrange
