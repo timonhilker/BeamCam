@@ -51,7 +51,7 @@ class Ui_Form(object):
 
         '''Defines the spin box for the horizontal waist'''
         self.sigmaxSpin = QtGui.QDoubleSpinBox(Form)
-        self.sigmaxSpin.setRange(0.,100.)
+        self.sigmaxSpin.setRange(0.,500.)
         self.sigmaxSpin.setProperty("value", 30.)
         self.sigmaxSpin.setObjectName(_fromUtf8("sigmaxSpin"))
         self.gridLayout.addWidget(self.sigmaxSpin, 4, 0, 1, 1)
@@ -63,7 +63,7 @@ class Ui_Form(object):
 
         '''Defines the spin box for the vertical waist'''
         self.sigmaySpin = QtGui.QDoubleSpinBox(Form)
-        self.sigmaySpin.setRange(0.,100.)
+        self.sigmaySpin.setRange(0.,500.)
         self.sigmaySpin.setProperty("value", 50.)
         self.sigmaySpin.setObjectName(_fromUtf8("sigmaySpin"))
         self.gridLayout.addWidget(self.sigmaySpin, 5, 0, 1, 1)

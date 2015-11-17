@@ -117,7 +117,7 @@ def StartGUI(camera='Simulation is used'):
     view.setRange(QtCore.QRectF(0, 0, 754, 754))
 
     # Create and add ROI for selecting an image region
-    roi = pg.ROI([310, 210], [200, 200],pen='b')
+    roi = pg.ROI([160, 40], [400, 400],pen='b') # First lower left edge in pxl [x,y], then Size in pxl 
     roi.addScaleHandle([0.5, 1], [0.5, 0.5])
     roi.addScaleHandle([0, 0.5], [0.5, 0.5])
     view.addItem(roi)
@@ -211,7 +211,7 @@ def StartGUI(camera='Simulation is used'):
     view.addItem(hLine, ignoreBounds=True)
 
     # Set up data buffer for time evolution plots
-    buffersize = 100 # Change this number for showing a longer period in time evolution plots
+    buffersize = 40000 # Change this number for showing a longer period in time evolution plots
     databuffer = np.zeros([7,buffersize])
     bufferrange = np.arange(buffersize)
     databuffer[0,:] = bufferrange
@@ -280,8 +280,11 @@ def StartGUI(camera='Simulation is used'):
                 simulation.ChooseImage()
                 ImageArray = simulation.image
             else:
-                camera.GrabNextImage()
-                ImageArray = camera.ImageArray
+                try:
+                    camera.GrabNextImage()
+                    ImageArray = camera.ImageArray
+                except: # Show last image if grab failed -> Does not work (?)
+                    ImageArray = np.rot90(ImageArray,-1*rotangle)
 
             ImageArray = np.rot90(ImageArray,rotangle)
             
